@@ -175,8 +175,17 @@ namespace AudioStreaming
 
                         if (mp3Mode)
                         {
+                            GeneratePlayList();
+                            OpenMp3File(true);
                             compressed = false;
                             NAudio.Wave.Mp3Frame frame = audioPlayer.GetNextMp3Frame();
+                            if (frame == null)
+                            {
+                                //failed to read file! abort!
+                                error = Error.MP3_READ_ERROR;
+                                closeServer();
+                                return;
+                            }
                             samples = frame.SampleRate;
                             channels = frame.ChannelMode == NAudio.Wave.ChannelMode.Mono ? 1 : 2;
                             audioPlayer.RewindMP3();
@@ -241,9 +250,8 @@ namespace AudioStreaming
             {
                 if (mp3Mode)
                 {
-                    GeneratePlayList();
                     //OpenMp3File(true);
-                    audioPlayer.OpenMp3File(@"H:\stuff\MP3's\rob zombie\Rob Zombie - Hellbilly Deluxe (MP3@320 kbps)\01. Rob Zombie - Call Of The Zombie.mp3");//"H:\stuff\MP3's\various\Imagine Dragons - Warriors.mp3");
+                    //audioPlayer.OpenMp3File(@"H:\stuff\MP3's\rob zombie\Rob Zombie - Hellbilly Deluxe (MP3@320 kbps)\01. Rob Zombie - Call Of The Zombie.mp3");//"H:\stuff\MP3's\various\Imagine Dragons - Warriors.mp3");
                 }
                 //while the connection is there, try to init and see if more is needed to be done
                 while (CheckConnection() && killThread == false)
