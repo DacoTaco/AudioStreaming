@@ -3,6 +3,12 @@ an app i created to stream my music to a device without having the music there. 
 
 the project uses:
 
-.NET 4.5
+.NET 4.5 : because C#
+
 Naudio : audio backbone
-Lz4.Net : compression of the raw PCM data when not in MP3 mode. to be changed in the future when i compress that PCM to MP3 somehow
+
+Lz4.Net/Lz4 : compression of the packets.
+
+
+
+TODO : encode the raw PCM from capture to MP3 and then compress with Lz4
