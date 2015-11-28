@@ -133,7 +133,7 @@ namespace AudioStreaming
             clientSocket = serverSocket.AcceptSocket();
             Debug.WriteLine(" >> Accept connection from client @ " + clientSocket.RemoteEndPoint);
 
-                     //setup the threading var's
+            //setup the threading var's
             ThreadAlive = true;
             killThread = false;
 
@@ -177,7 +177,6 @@ namespace AudioStreaming
                         {
                             GeneratePlayList();
                             OpenMp3File(true);
-                            compressed = false;
                             NAudio.Wave.Mp3Frame frame = audioPlayer.GetNextMp3Frame();
                             if (frame == null)
                             {
@@ -248,11 +247,11 @@ namespace AudioStreaming
             }
             else
             {
-                if (mp3Mode)
+                /*if (mp3Mode)
                 {
                     //OpenMp3File(true);
-                    //audioPlayer.OpenMp3File(@"H:\stuff\MP3's\rob zombie\Rob Zombie - Hellbilly Deluxe (MP3@320 kbps)\01. Rob Zombie - Call Of The Zombie.mp3");//"H:\stuff\MP3's\various\Imagine Dragons - Warriors.mp3");
-                }
+                    audioPlayer.OpenMp3File(@"H:\stuff\MP3's\rob zombie\Rob Zombie - Hellbilly Deluxe (MP3@320 kbps)\01. Rob Zombie - Call Of The Zombie.mp3");//"H:\stuff\MP3's\various\Imagine Dragons - Warriors.mp3");
+                }*/
                 //while the connection is there, try to init and see if more is needed to be done
                 while (CheckConnection() && killThread == false)
                 {
@@ -279,8 +278,10 @@ namespace AudioStreaming
                         }
                         if (frame != null)
                         {
-                            //audioPlayer.AddNextFrame(frame.RawData);
-                            int ret = SendData(command, frame.RawData);
+                            byte [] data = frame.RawData;
+                            if(compressed)
+                                data = Compressor.Compress(data);
+                            int ret = SendData(command, data);
 
                             if (ret < 0)
                                 break;

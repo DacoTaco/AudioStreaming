@@ -36,7 +36,7 @@ namespace AudioStreaming.Client
         }
         private void CheckBoxChanged(object sender, RoutedEventArgs e)
         {
-            cbCompress.IsEnabled = (cbMp3Mode.IsChecked == true)?false:true;
+            //cbCompress.IsEnabled = (cbMp3Mode.IsChecked == true)?false:true;
 
         }
         private void btConnect_Click(object sender, RoutedEventArgs e)
@@ -46,6 +46,11 @@ namespace AudioStreaming.Client
             Client.StartConnection(txbHostname.Text, (cbCompress.IsChecked == true) ? true : false, (cbMp3Mode.IsChecked == true) ? true : false);
         }
         private void Disconnect(object sender, RoutedEventArgs e)
+        {
+            Client.KillThread();
+        }
+
+        private void CloseApp(object sender, EventArgs e)
         {
             Client.KillThread();
         }

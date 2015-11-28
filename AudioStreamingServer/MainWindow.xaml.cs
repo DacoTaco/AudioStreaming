@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -43,7 +44,7 @@ namespace AudioStreaming.Server
                 listDevices.SelectedIndex = 0;
             }
 
-            txtMp3Path.Text = @"H:\stuff\MP3's";//System.IO.Directory.GetCurrentDirectory();            
+            txtMp3Path.Text = System.IO.Directory.GetCurrentDirectory(); //@"H:\stuff\MP3's\"          
         }
 
         private void btStart_Click(object sender, RoutedEventArgs e)
@@ -75,6 +76,11 @@ namespace AudioStreaming.Server
                     txtMp3Path.Text = dialog.SelectedPath;
             }
             
+        }
+
+        private void CloseApp(object sender, EventArgs e)
+        {
+            Server.KillThread();
         }
     }
 }

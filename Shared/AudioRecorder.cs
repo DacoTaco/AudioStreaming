@@ -6,13 +6,14 @@ namespace AudioStreaming
     public class AudioRecorder : AudioBackend
     {
         //variables
-        private NAudio.Wave.WaveIn sourceStream = null;
+        //since we are using threads, we need to use WaveInEvent instead of WaveIn.
+        //WaveIn Dislikes threads it seems
+        private WaveInEvent sourceStream = null;//NAudio.Wave.WaveIn sourceStream = null;
         NAudio.Wave.Mp3FileReader mp3Reader = null;
 
 
 
         //functions
-
         protected override bool IsBackendValid()
         {
             if (out_buffer == null || (mp3Reader == null && sourceStream == null))
@@ -25,7 +26,7 @@ namespace AudioStreaming
             if (sourceStream != null)
             {
                 sourceStream.StopRecording();
-                sourceStream.Dispose();
+                //sourceStream.Dispose();
                 sourceStream = null;
             }
 
@@ -49,7 +50,7 @@ namespace AudioStreaming
                 return;
 
             //setup the input stream. we get the device number from the selected index, setup the format for reading
-            sourceStream = new NAudio.Wave.WaveIn();
+            sourceStream = new NAudio.Wave.WaveInEvent();//NAudio.Wave.WaveIn();
             sourceStream.DeviceNumber = index;
             sourceStream.WaveFormat = new NAudio.Wave.WaveFormat(44100, NAudio.Wave.WaveIn.GetCapabilities(index).Channels);
             waveFormat = sourceStream.WaveFormat;
@@ -74,8 +75,9 @@ namespace AudioStreaming
         {
             if (mp3Reader == null)
             {
-                string file = @"H:\stuff\MP3's\Anime\Hideyuki Fukasawa - EMIYA (UBW Extended).mp3"; //@"H:\stuff\MP3's\Alestorm\2011 - Back Through Time\13 - You Are A Pirate.mp3";
-                mp3Reader = new NAudio.Wave.Mp3FileReader(file);
+                return null;
+                /*string file = @"H:\stuff\MP3's\Anime\Hideyuki Fukasawa - EMIYA (UBW Extended).mp3"; //@"H:\stuff\MP3's\Alestorm\2011 - Back Through Time\13 - You Are A Pirate.mp3";
+                mp3Reader = new NAudio.Wave.Mp3FileReader(file);*/
             }
             NAudio.Wave.Mp3Frame frame = mp3Reader.ReadNextFrame();
 
