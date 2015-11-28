@@ -11,4 +11,7 @@ Lz4.Net/Lz4 : compression of the packets.
 
 
 
-TODO : encode the raw PCM from capture to MP3 and then compress with Lz4
+TODO : 
+
+- encode the raw PCM from capture to MP3 and then compress with Lz4
+- manage the buffer better. dont play data when its low etc etc
