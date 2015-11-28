@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioStreaming.Server", "AudioStreamingServer\AudioStreaming.Server.csproj", "{A8E6E200-1F96-42FB-9785-D4E45B083F98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioStreaming.Client", "AudioStreamingClient\AudioStreaming.Client.csproj", "{5C32EFA7-EF4A-4421-B995-43CEFB4BBCC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioStream", "Shared\AudioStream.csproj", "{23C48BBB-24CB-44DE-BA49-DBCAA410A299}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A8E6E200-1F96-42FB-9785-D4E45B083F98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8E6E200-1F96-42FB-9785-D4E45B083F98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8E6E200-1F96-42FB-9785-D4E45B083F98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8E6E200-1F96-42FB-9785-D4E45B083F98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C32EFA7-EF4A-4421-B995-43CEFB4BBCC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C32EFA7-EF4A-4421-B995-43CEFB4BBCC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C32EFA7-EF4A-4421-B995-43CEFB4BBCC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C32EFA7-EF4A-4421-B995-43CEFB4BBCC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23C48BBB-24CB-44DE-BA49-DBCAA410A299}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23C48BBB-24CB-44DE-BA49-DBCAA410A299}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23C48BBB-24CB-44DE-BA49-DBCAA410A299}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23C48BBB-24CB-44DE-BA49-DBCAA410A299}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
