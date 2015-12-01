@@ -60,12 +60,15 @@ namespace AudioStreaming
             return;
         }
 
-        public bool CompareWaveformat(Mp3Frame frame)
+        public bool IsWaveformatEqual(Mp3Frame frame)
         {
-            var temp = (Mp3WaveFormat)waveFormat;
+            Mp3WaveFormat mp3Format = new Mp3WaveFormat(41100,2,0,0);
+            if (waveFormat.GetType() != mp3Format.GetType())
+                return false;
+            mp3Format = (Mp3WaveFormat)waveFormat;
             if(frame.SampleRate == waveFormat.SampleRate &&
                 (frame.ChannelMode == ChannelMode.Mono ? 1 : 2) == waveFormat.Channels &&
-                frame.FrameLength == ((Mp3WaveFormat)temp).blockSize)
+                frame.FrameLength == mp3Format.blockSize)
             {
                 return true;
             }

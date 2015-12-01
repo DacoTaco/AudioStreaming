@@ -275,7 +275,7 @@ namespace AudioStreaming
                 socket.Connect(ipaddress, port);
                 return socket.Connected;
             }
-            catch
+            catch (Exception ex)
             {
                 return false;
             }
@@ -316,15 +316,17 @@ namespace AudioStreaming
                 port = 8666;
 
             //get the local IP so we can setup the listener
+            //apparently, if we bind to 0.0.0.0 we can accept connections from any source, local (127.0.0.1) or external!
             IPAddress ipAddress = null;
-            var host = Dns.GetHostEntry(Dns.GetHostName());
+            /*var host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (var ip in host.AddressList)
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
                     ipAddress = ip;
                 }
-            }
+            }*/
+            ipAddress = IPAddress.Parse("0.0.0.0");
 
             //setup the listener, socket and variables
             socket = new TcpListener(ipAddress, port);

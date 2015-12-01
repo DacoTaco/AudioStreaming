@@ -270,7 +270,7 @@ namespace AudioStreaming
                                 break;
                             }
                             //compare the frame with the waveform from the last file.
-                            if (!audioPlayer.CompareWaveformat(frame))
+                            if (!audioPlayer.IsWaveformatEqual(frame))
                             {
                                 //the frame is in a different format. we need to let the client know!
                                 command = Protocol.REINIT_BACKEND;
