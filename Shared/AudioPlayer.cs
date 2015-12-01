@@ -35,12 +35,27 @@ namespace AudioStreaming
             }
         }
 
+        private byte bufferSize = 0;
+        public byte BufferSize
+        {
+            get
+            {
+                return bufferSize;//(byte)((byte.Parse(out_buffer.BufferedDuration.TotalSeconds.ToString()) / 5) * 100);
+                //return test;
+            }
+            protected set
+            {
+                bufferSize = (byte)((value / 5) * 100);
+                OnPropertyChanged("BufferSize");
+            }
+        }
+
         //functions
         //--------------------------------
 
         protected override bool IsBackendValid()
         {
-            if (out_buffer == null || waveOut == null)
+            if (out_buffer == null || ( waveOut == null && decompressor == null) )
                 return false;
             return true;
         }
@@ -92,11 +107,17 @@ namespace AudioStreaming
         //Add Samples to the Buffer which is played by the player
         public byte AddSamples(ref byte[] data)
         {
+            return AddSamples(data, data.Length);
+        }
+        public byte AddSamples(byte[] data, int data_lenght)
+        {
             if (data == null || data.Length <= 0 || !IsBackendValid())
                 return 0;
 
             if (out_buffer.BufferLength > out_buffer.BufferedBytes + data.Length)
+            {
                 out_buffer.AddSamples(data, 0, data.Length);
+            }
             else
                 throw new Exception("AddSamples : Buffer out of bounds");
 
@@ -156,7 +177,7 @@ namespace AudioStreaming
 
                 if (out_buffer.BufferedBytes + decompressed < out_buffer.BufferLength)
                 {
-                    out_buffer.AddSamples(buffer, 0, decompressed);
+                    out_buffer.AddSamples(buffer, 0, decompressed);//AddSamples(buffer,decompressed);//out_buffer.AddSamples(buffer, 0, decompressed);
                 }
             }
             return decompressed;

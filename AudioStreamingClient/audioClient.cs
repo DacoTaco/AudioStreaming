@@ -25,6 +25,19 @@ namespace AudioStreaming
                 OnPropertyChanged("volume");    
             }
         }
+        public byte BufferLenght
+        {
+            get
+            {
+                return audioPlayer.BufferSize;
+                //return test;
+            }
+            private set
+            {
+                OnPropertyChanged("BufferSize");
+            }
+        }
+
 
         //the audioPlayer using our AudioBackend. this will handle the data and play it
         private AudioPlayer audioPlayer = null;
@@ -178,6 +191,7 @@ namespace AudioStreaming
                                             AddDataToBuffer(ref data);
                                         }
 
+                                        BufferLenght = audioPlayer.BufferSize;
                                         audioPlayer.WaitForMoreData();
                                     }
                                     catch (Exception)
@@ -231,6 +245,7 @@ namespace AudioStreaming
                 return;
 
             audioPlayer.AddSamples(ref data);
+            
             return;
         }
 
