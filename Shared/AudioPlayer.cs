@@ -1,6 +1,7 @@
 ﻿using System;
 using NAudio.Wave;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace AudioStreaming
 {
@@ -15,12 +16,13 @@ namespace AudioStreaming
         /// <summary>
         /// Get or Set the Volume of the player. 1 = 100% , 0 = 0%
         /// </summary>
+        private float volume = 1;
         public float Volume
         {
             get
             {
                 if (volumeHandler == null)
-                    return 100;
+                    return -1;
                 return (volumeHandler.Volume >= 1)?100:volumeHandler.Volume*100;
             }
             set
@@ -30,26 +32,11 @@ namespace AudioStreaming
                     //if the value is > 1, we set it to 1. 1 = 100% volume in the handler
                     value = (value >= 100) ? 1 : value / 100;
                     volumeHandler.Volume = value;
-                    OnPropertyChanged("Volume");
                 }
+                volume = (value >= 100) ? 1 : value / 100;
+                OnPropertyChanged("Volume");
             }
         }
-
-        private byte bufferSize = 0;
-        public byte BufferSize
-        {
-            get
-            {
-                return bufferSize;//(byte)((byte.Parse(out_buffer.BufferedDuration.TotalSeconds.ToString()) / 5) * 100);
-                //return test;
-            }
-            protected set
-            {
-                bufferSize = (byte)((value / 5) * 100);
-                OnPropertyChanged("BufferSize");
-            }
-        }
-
         //functions
         //--------------------------------
 
@@ -86,7 +73,7 @@ namespace AudioStreaming
         }
 
         //Set's up for playing a stream. basically sets up the DirectSound and the buffer. to add audio to the buffer we call AddSamples with the data
-        public void StartPlaying()
+        public void StartPlaying(float volume)
         {
             if (waveFormat == null)
                 return;
@@ -97,6 +84,7 @@ namespace AudioStreaming
             //setup the 'provider'. from what i understood this is what takes the input wave and converts it into what directsound understands. which afaik is PCM
             out_buffer = new BufferedWaveProvider(waveFormat);
             volumeHandler = new VolumeWaveProvider16(out_buffer);
+            Volume = volume;
 
             waveOut.Init(volumeHandler);
 
@@ -137,7 +125,7 @@ namespace AudioStreaming
             out_buffer = new BufferedWaveProvider(decompressor.OutputFormat);
             volumeHandler = new VolumeWaveProvider16(out_buffer);
             //1.0 = full volume, 0.0 = silence
-            volumeHandler.Volume = 1.0f;
+            volumeHandler.Volume = volume;
             waveOut.Init(volumeHandler);
             waveOut.Play();
         }
@@ -192,14 +180,17 @@ namespace AudioStreaming
             TimeSpan sleepTime = TimeSpan.FromSeconds(0);
             if (out_buffer.BufferedDuration >= TimeSpan.FromSeconds(3))
             {
-                sleepTime = out_buffer.BufferedDuration - TimeSpan.FromSeconds(1);
+                sleepTime = out_buffer.BufferedDuration - TimeSpan.FromSeconds(3);
             }
             else if (out_buffer.BufferedDuration > TimeSpan.FromSeconds(2))
             {
-                sleepTime = TimeSpan.FromSeconds(0.15);
+                //sleepTime = TimeSpan.FromSeconds(0.15);
+                sleepTime = TimeSpan.FromSeconds(out_buffer.BufferedDuration.TotalSeconds / 100);
             }
+
             System.Threading.Thread.Sleep(sleepTime);
 
+            BufferLenght = out_buffer.BufferedDuration.TotalSeconds;
             return Convert.ToDouble(sleepTime.TotalSeconds);
         }
 

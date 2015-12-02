@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Diagnostics;
 using System.ComponentModel;
+using System.Windows.Data;
 
 namespace AudioStreaming
 {
@@ -10,31 +11,34 @@ namespace AudioStreaming
     {
         //variables 
         private string hostname = "";
-        float test = 0;
-        public float volume
+        private float volume = 100;
+        public float Volume
         {
             get
             {
-                return audioPlayer.Volume;
-                //return test;
+                float temp = audioPlayer.Volume;
+                if (temp == -1)
+                    return volume;
+                else
+                    return temp;
             }
             set
             {
                 audioPlayer.Volume = value;
-                test = value;
-                OnPropertyChanged("volume");    
+                volume = value;
+                //OnPropertyChanged("Volume");    
             }
         }
-        public byte BufferLenght
+        public double BufferLenght
         {
             get
             {
-                return audioPlayer.BufferSize;
-                //return test;
+               return (byte)audioPlayer.BufferLenght;
             }
-            private set
+            set
             {
-                OnPropertyChanged("BufferSize");
+                //audioPlayer.BufferLenght = value;
+                OnPropertyChanged("BufferLenght");
             }
         }
 
@@ -45,7 +49,6 @@ namespace AudioStreaming
         public audioClient()
         {
             audioPlayer = new AudioPlayer();
-            volume = 100;
             return;
         }
 
@@ -146,9 +149,10 @@ namespace AudioStreaming
                         //in mp3Mode we will wait for the first frame
                         if(mp3Mode == false)
                         {
-                            audioPlayer.StartPlaying();
+                            audioPlayer.StartPlaying(Volume);
                         }
                         connection_init = 1;
+                        BufferLenght = 0;
                     }
                     else
                     {
@@ -191,10 +195,13 @@ namespace AudioStreaming
                                             AddDataToBuffer(ref data);
                                         }
 
-                                        BufferLenght = audioPlayer.BufferSize;
                                         audioPlayer.WaitForMoreData();
+                                        //i dont know how i can link these 2, so right now i need to call the set so that it refreshes on the GUI. 
+                                        //which is fail
+                                        //TODO : fix this if i can, without redesigning everything <<
+                                        BufferLenght = audioPlayer.BufferLenght;
                                     }
-                                    catch (Exception)
+                                    catch (Exception ex)
                                     {
                                         throw;
                                     }
@@ -255,6 +262,7 @@ namespace AudioStreaming
         {
             CleanupNetworking();
 
+            BufferLenght = 0;
             audioPlayer.StopPlaying();
 
             ThreadAlive = false;

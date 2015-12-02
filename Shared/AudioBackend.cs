@@ -17,6 +17,33 @@ namespace AudioStreaming
         protected BufferedWaveProvider out_buffer = null;
 
 
+        private double bufferSize = 0;
+        public double BufferLenght
+        {
+            get
+            {
+                return bufferSize;//(byte)((byte.Parse(out_buffer.BufferedDuration.TotalSeconds.ToString()) / 5) * 100);
+                //return test;
+            }
+            set
+            {
+                double dv = value;
+                if (dv > 5)
+                    dv = 5;
+
+                if (dv != 0)
+                {
+                    bufferSize = (dv / 5);
+                    bufferSize *= 100;
+                }
+                else
+                    bufferSize = 0;
+                OnPropertyChanged("BufferLenght");
+            }
+        }
+
+
+
 
         //----------------------
         //functions
@@ -36,6 +63,7 @@ namespace AudioStreaming
             {
                 out_buffer.ClearBuffer();
                 out_buffer = null;
+                BufferLenght = 0;
             }
            
         }

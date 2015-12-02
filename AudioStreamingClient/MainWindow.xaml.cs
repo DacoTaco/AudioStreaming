@@ -31,8 +31,6 @@ namespace AudioStreaming.Client
         {
             InitializeComponent();
             this.DataContext = Client;//this;
-            slVolume.Value = 90;
-
         }
         private void CheckBoxChanged(object sender, RoutedEventArgs e)
         {

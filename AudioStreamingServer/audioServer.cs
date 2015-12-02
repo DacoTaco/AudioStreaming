@@ -116,6 +116,8 @@ namespace AudioStreaming
         //Start's the audio server. this needs the samplerate & channels cause we need to send these to the client during init
         public void Server()
         {
+            if (ThreadAlive == true)
+                return;
 
             if (mp3Path == null)
                 throw new ArgumentNullException("StartServer : Path is null!");
@@ -129,13 +131,13 @@ namespace AudioStreaming
             Debug.WriteLine(" >> Server Started");
             Debug.WriteLine("The local End point is  :" + serverSocket.LocalEndpoint);
 
-            //wait for a connection & accept it
-            clientSocket = serverSocket.AcceptSocket();
-            Debug.WriteLine(" >> Accept connection from client @ " + clientSocket.RemoteEndPoint);
-
             //setup the threading var's
             ThreadAlive = true;
             killThread = false;
+
+            //wait for a connection & accept it
+            clientSocket = serverSocket.AcceptSocket();
+            Debug.WriteLine(" >> Accept connection from client @ " + clientSocket.RemoteEndPoint);
 
             //server has officially started
             serverStarted = 1;
