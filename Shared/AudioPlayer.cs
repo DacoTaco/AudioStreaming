@@ -33,7 +33,7 @@ namespace AudioStreaming
                     value = (value >= 100) ? 1 : value / 100;
                     volumeHandler.Volume = value;
                 }
-                volume = (value >= 100) ? 1 : value / 100;
+                volume = value;
                 OnPropertyChanged("Volume");
             }
         }
@@ -117,7 +117,7 @@ namespace AudioStreaming
             //first cleanup the the backend. the old MP3 info could be different
             StopPlaying();
             //setup the output stream, using the provider & mp3Frame
-            NAudio.Wave.DirectSoundOut waveOut = new NAudio.Wave.DirectSoundOut();
+            waveOut = new NAudio.Wave.DirectSoundOut();
 
             SetWaveFormat(frame);
 
@@ -177,15 +177,14 @@ namespace AudioStreaming
         /// <returns>the amout of seconds the app waited</returns>
         public double WaitForMoreData()
         {
-            TimeSpan sleepTime = TimeSpan.FromSeconds(0);
+            TimeSpan sleepTime = TimeSpan.FromSeconds(0.01);
             if (out_buffer.BufferedDuration >= TimeSpan.FromSeconds(3))
             {
-                sleepTime = out_buffer.BufferedDuration - TimeSpan.FromSeconds(3);
+                sleepTime = TimeSpan.FromSeconds(out_buffer.BufferedDuration.TotalSeconds / (1 * 6));
             }
             else if (out_buffer.BufferedDuration > TimeSpan.FromSeconds(2))
             {
-                //sleepTime = TimeSpan.FromSeconds(0.15);
-                sleepTime = TimeSpan.FromSeconds(out_buffer.BufferedDuration.TotalSeconds / 100);
+                sleepTime = TimeSpan.FromSeconds(out_buffer.BufferedDuration.TotalSeconds / (1*500));
             }
 
             System.Threading.Thread.Sleep(sleepTime);

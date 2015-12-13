@@ -6,6 +6,16 @@ namespace AudioStreaming
     {
         public static int ByteArrayToInt(byte[] data, int startindex)
         {
+            if (data.Length < 4)
+            {
+                byte[] _temp = new byte[4];
+                for (int i = data.Length-1; i >= 0 ; i--)
+                {
+                    _temp[i + data.Length] = data[i];
+                }
+                data = _temp;                
+            }
+
             if (!BitConverter.IsLittleEndian)
                 return GetLittleEndianIntegerFromByteArray(data, startindex);
             else
@@ -13,6 +23,16 @@ namespace AudioStreaming
         }
         public static uint ByteArrayToUInt(byte[] data, int startindex)
         {
+            if (data.Length < 4)
+            {
+                byte[] _temp = new byte[4];
+                for (int i = data.Length - 1; i >= 0; i--)
+                {
+                    _temp[3 - i] = data[i];
+                }
+                data = _temp;
+            }
+
             if (!BitConverter.IsLittleEndian)
                 return GetLittleEndianUnsignedIntegerFromByteArray(data, startindex);
             else
@@ -27,7 +47,7 @@ namespace AudioStreaming
         /// <returns>byte</returns>
         public static byte ByteFromInt(int value, byte _byte)
         {
-            if (_byte < 0 || _byte > 4 || value == 0 || _byte == 0)
+            if (_byte < 0 || _byte > 4 || value == 0 )
                 return 0;
 
             byte[] intBytes = BitConverter.GetBytes(value);

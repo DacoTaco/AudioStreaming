@@ -20,7 +20,11 @@ namespace AudioStreaming
         public const byte SEND_DATA = 0x20;
         public const byte SEND_DATA_ACK = 0x21;
 
+        public const byte SEND_MULTI_DATA = 0x22;
+        public const byte SEND_MULTI_ACK = 0x23;
+
         //asking client to reinit the backend because format changed
+        //this is always followed by 1 frame. no more
         public const byte REINIT_BACKEND = 0x30;
         public const byte REINIT_DONE = 0x31;
 

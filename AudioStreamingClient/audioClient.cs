@@ -103,7 +103,8 @@ namespace AudioStreaming
                     error = 0;
                     connected = 1;
                     byte[] buffer = null;
-                    int size = 0; 
+                    int size = 0;
+                    byte recv_multi = 0;
                     
 
                     if (connection_init == 0)
@@ -161,39 +162,82 @@ namespace AudioStreaming
                         {
                             if (size - 5 <= 0)
                                 continue;
+
                             size -= 5;
                             //we received data from the server! strip header and pass it on to the bufferedProvider!
                             byte[] data = new byte[size];
                             Array.Copy(buffer, 5, data, 0, size);
+
+                            //decompress data if needed
+                            if (compressed)
+                                data = Compressor.Decompress(data);
+
                             //we have data to process!
                             switch (buffer[0])
                             {
                                 //we received data to play!
                                 case Protocol.REINIT_BACKEND:
+                                    //we received command to reinit the backend
+                                    //wait for all data to be played
+                                    while (audioPlayer.WaitForMoreData() > 0)
+                                    {
+                                        BufferLenght = audioPlayer.BufferLenght;
+                                    }
+                                    //stop player, and then add the next frame. this will reinit the player
+                                    audioPlayer.StopPlaying();
+                                    recv_multi = data[0];
+                                    goto case Protocol.SEND_DATA;
+
+                                case Protocol.SEND_MULTI_DATA:
+                                    recv_multi = data[0];
+                                    goto case Protocol.SEND_DATA;
+
                                 case Protocol.SEND_DATA:
                                     try
                                     {
-                                        if (compressed)
-                                            data = Compressor.Decompress(data);
+                                        int i = 1;
+                                        do
+                                        {
+                                            byte[] frame = new byte[1]; 
+                                            int frameSize = 0;
+                                            int index = 0;
 
-                                        if (mp3Mode)
-                                        {
-                                            //we received command to reinit the backend
-                                            if (buffer[0] == Protocol.REINIT_BACKEND)
+                                            if (recv_multi <= 0)
                                             {
-                                                //wait for all data to be played
-                                                while (audioPlayer.WaitForMoreData() > 0)
-                                                {
-                                                }
-                                                //stop player, and then add the next frame. this will reinit the player
-                                                audioPlayer.StopPlaying();
+                                                 frame = data;
                                             }
-                                            audioPlayer.AddNextFrame(data);
-                                        }
-                                        else
-                                        {
-                                            AddDataToBuffer(ref data);
-                                        }
+                                            else
+                                            {
+                                                //retrieve index of current frame
+                                                byte[] _temp = new byte[2];
+
+                                                //the index is in the 1st & 2nd bytes of the frame's header of the packet
+                                                Array.Copy(data,(4 * i) - 3,_temp,0,2);
+                                                index = ByteConversion.ByteArrayToInt(_temp,0);
+
+                                                //retrieve size of current frame, which is in the 3th & 4th bytes of the frame's header of the packet
+                                                Array.Copy(data, (4 * i) - 1, _temp, 0, 2);
+                                                frameSize = ByteConversion.ByteArrayToInt(_temp, 0);//data.Length - index;
+
+
+                                                Array.Resize(ref frame, frameSize);
+                                                Array.Copy(data, index, frame, 0, frameSize);
+                                                //continue;
+                                            }
+
+                                            //and add data...
+                                            if (mp3Mode)
+                                            {
+                                                audioPlayer.AddNextFrame(frame);
+                                            }
+                                            else
+                                            {
+                                                AddDataToBuffer(ref frame);
+                                            }
+
+                                            i++;
+                                        } while (i <= recv_multi);
+                                        
 
                                         audioPlayer.WaitForMoreData();
                                         //i dont know how i can link these 2, so right now i need to call the set so that it refreshes on the GUI. 
@@ -210,7 +254,10 @@ namespace AudioStreaming
                                     //NOTE : currently ACK is disabled deu to audio lag then. im guessing the PCM is to much and going to fast to send an ack in between
                                     if (mp3Mode)
                                     {
-                                        SendData(Protocol.SEND_DATA_ACK, null);
+                                        if(recv_multi <= 0)
+                                            SendData(Protocol.SEND_DATA_ACK, null);
+                                        else
+                                            SendData(Protocol.SEND_MULTI_ACK, null);
                                     }
                                     break;
                                 default:
