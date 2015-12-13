@@ -343,7 +343,9 @@ namespace AudioStreaming
                         Array.Copy(header, _tempData, header.Length);
                         Array.Copy(data, 0, _tempData, header.Length, data.Length);
 
-                        command = Protocol.SEND_MULTI_DATA;
+                        if (command != Protocol.REINIT_BACKEND)
+                            command = Protocol.SEND_MULTI_DATA;
+
                         data = _tempData;
 
                         //compress that shit!
