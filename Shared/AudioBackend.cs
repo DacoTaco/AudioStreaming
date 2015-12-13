@@ -90,14 +90,21 @@ namespace AudioStreaming
 
         public bool IsWaveformatEqual(Mp3Frame frame)
         {
-            Mp3WaveFormat mp3Format = new Mp3WaveFormat(41100,2,0,0);
-            if (waveFormat.GetType() != mp3Format.GetType())
+            Mp3WaveFormat new_mp3Format = new Mp3WaveFormat(frame.SampleRate, frame.ChannelMode == ChannelMode.Mono ? 1 : 2,
+                        frame.FrameLength, frame.BitRate);
+
+            if (waveFormat.GetType() != new_mp3Format.GetType())
                 return false;
-            mp3Format = (Mp3WaveFormat)waveFormat;
-            if(frame.SampleRate == waveFormat.SampleRate &&
-                (frame.ChannelMode == ChannelMode.Mono ? 1 : 2) == waveFormat.Channels &&
-                frame.FrameLength == mp3Format.blockSize)
+            
+            Mp3WaveFormat CurrentFormat = (Mp3WaveFormat)waveFormat;
+            if(
+                CurrentFormat.SampleRate == new_mp3Format.SampleRate &&
+                CurrentFormat.Channels == new_mp3Format.Channels &&
+                /*CurrentFormat.blockSize == new_mp3Format.blockSize &&*/
+                CurrentFormat.BitsPerSample == new_mp3Format.BitsPerSample &&
+                CurrentFormat.AverageBytesPerSecond == new_mp3Format.AverageBytesPerSecond )
             {
+
                 return true;
             }
             else

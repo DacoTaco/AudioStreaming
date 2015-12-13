@@ -180,7 +180,7 @@ namespace AudioStreaming
             TimeSpan sleepTime = TimeSpan.FromSeconds(0.01);
             if (out_buffer.BufferedDuration >= TimeSpan.FromSeconds(3))
             {
-                sleepTime = TimeSpan.FromSeconds(out_buffer.BufferedDuration.TotalSeconds / (1 * 6));
+                sleepTime = TimeSpan.FromSeconds(out_buffer.BufferedDuration.TotalSeconds / (1 * 8));
             }
             else if (out_buffer.BufferedDuration > TimeSpan.FromSeconds(2))
             {
