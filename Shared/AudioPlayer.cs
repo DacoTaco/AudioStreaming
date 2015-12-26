@@ -173,24 +173,33 @@ namespace AudioStreaming
 
         /// <summary>
         /// let the thread sleep while the buffer is full enough.
-        /// </summary>
-        /// <returns>the amout of seconds the app waited</returns>
+        /// </summary>       
+        /// <returns>the amout of seconds left in buffer</returns>
         public double WaitForMoreData()
         {
             TimeSpan sleepTime = TimeSpan.FromSeconds(0.01);
-            if (out_buffer.BufferedDuration >= TimeSpan.FromSeconds(3))
+            //prevent devide by 0
+            if (out_buffer.BufferDuration.TotalSeconds > 0)
             {
-                sleepTime = TimeSpan.FromSeconds(out_buffer.BufferedDuration.TotalSeconds / (1 * 8));
-            }
-            else if (out_buffer.BufferedDuration > TimeSpan.FromSeconds(2))
-            {
-                sleepTime = TimeSpan.FromSeconds(out_buffer.BufferedDuration.TotalSeconds / (1*500));
+                double devider = 5;
+                for (double i = out_buffer.BufferedDuration.TotalSeconds; i < 3 && i > 0; i--)
+                {
+                    //basically, this'll make the devider bigger so we sleep less when we have to little data
+                    // +3s : devide by 5
+                    // 2s : devide by 500
+                    // 1s : devide by 50 000
+                    // 0s : devide by 5 000 000
+                    devider *= 100;
+                }
+                sleepTime = TimeSpan.FromSeconds(out_buffer.BufferedDuration.TotalSeconds / (1 * devider));
             }
 
             System.Threading.Thread.Sleep(sleepTime);
 
             BufferLenght = out_buffer.BufferedDuration.TotalSeconds;
-            return Convert.ToDouble(sleepTime.TotalSeconds);
+
+            //return bufferlenght in seconds, this is good if we wanna catch how much data is left for like when we wanna reinit or close after current song
+            return Convert.ToDouble(out_buffer.BufferedDuration.TotalSeconds);
         }
 
     }

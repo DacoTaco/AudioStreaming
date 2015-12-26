@@ -179,7 +179,7 @@ namespace AudioStreaming
                                 case Protocol.REINIT_BACKEND:
                                     //we received command to reinit the backend
                                     //wait for all data to be played
-                                    while (audioPlayer.WaitForMoreData() > 0.01)
+                                    while (audioPlayer.WaitForMoreData() > 0)
                                     {
                                         BufferLenght = audioPlayer.BufferLenght;
                                     }
