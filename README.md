@@ -14,3 +14,5 @@ Lz4.Net/Lz4 : compression of the packets.
 TODO : 
 
 - encode the raw PCM from capture to MP3 and then compress with Lz4
+- implement settings
+- redesign alot of the code. its REALLY shitty designed
