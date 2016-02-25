@@ -22,8 +22,7 @@ namespace AudioStreaming
         {
             get
             {
-                return bufferSize;//(byte)((byte.Parse(out_buffer.BufferedDuration.TotalSeconds.ToString()) / 5) * 100);
-                //return test;
+                return bufferSize;
             }
             set
             {
@@ -100,9 +99,10 @@ namespace AudioStreaming
             if(
                 CurrentFormat.SampleRate == new_mp3Format.SampleRate &&
                 CurrentFormat.Channels == new_mp3Format.Channels &&
-                /*CurrentFormat.blockSize == new_mp3Format.blockSize &&*/
                 CurrentFormat.BitsPerSample == new_mp3Format.BitsPerSample &&
-                CurrentFormat.AverageBytesPerSecond == new_mp3Format.AverageBytesPerSecond )
+                CurrentFormat.AverageBytesPerSecond == new_mp3Format.AverageBytesPerSecond &&
+                CurrentFormat.blockSize == new_mp3Format.blockSize &&
+                CurrentFormat.ExtraSize == new_mp3Format.ExtraSize)
             {
 
                 return true;

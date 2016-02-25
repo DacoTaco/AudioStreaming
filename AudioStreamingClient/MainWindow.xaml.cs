@@ -26,11 +26,21 @@ namespace AudioStreaming.Client
 
         private audioClient Client = new audioClient();
 
+        
+
         //functions
         public MainWindow()
         {
             InitializeComponent();
-            this.DataContext = Client;//this;
+
+            //assinging datacontext to all the stuff...
+            this.DataContext = Client;
+            txbHostname.DataContext = Client.settings;
+            cbMp3Mode.DataContext = Client.settings;
+            cbCompress.DataContext = Client.settings;
+
+            //for the disabling of controls
+            grdConnectionControls.DataContext = Client;
         }
         private void CheckBoxChanged(object sender, RoutedEventArgs e)
         {

@@ -1,78 +1,21 @@
 ﻿using System;
 using System.Net.Sockets;
-using System.Threading;
 using System.Diagnostics;
-using System.ComponentModel;
-using System.Windows.Data;
 
-namespace AudioStreaming
+namespace AudioStreaming.Client
 {
-    public class audioClient : NetworkBackend
+    //the part of the client that handles connections ^-^;
+
+    public partial class audioClient : NetworkBackend
     {
-        //variables 
-        private string hostname = "";
-        private float volume = 100;
-        public float Volume
-        {
-            get
-            {
-                float temp = audioPlayer.Volume;
-                if (temp == -1)
-                    return volume;
-                else
-                    return temp;
-            }
-            set
-            {
-                audioPlayer.Volume = value;
-                volume = value;
-                //OnPropertyChanged("Volume");    
-            }
-        }
-        public double BufferLenght
-        {
-            get
-            {
-               return (byte)audioPlayer.BufferLenght;
-            }
-            set
-            {
-                //audioPlayer.BufferLenght = value;
-                OnPropertyChanged("BufferLenght");
-            }
-        }
-
-
-        //the audioPlayer using our AudioBackend. this will handle the data and play it
-        private AudioPlayer audioPlayer = null;
-
-        public audioClient()
-        {
-            audioPlayer = new AudioPlayer();
-            return;
-        }
-
-        public void StartConnection(string _hostname, bool compressData, bool _mp3Mode)
-        {
-            //we dont want to have the client run twice
-            if (ThreadAlive)
-                return;
-
-            hostname = _hostname;
-            compressed = compressData;
-            mp3Mode = _mp3Mode;
-            Thread oThread = new Thread(new ThreadStart(this.ConnectToServer));
-            ThreadAlive = false;
-            killThread = false;
-            oThread.Start();
-            return;
-            //ConnectToServer();
-        }
+        //---------------------------
+        //       FUCNTIONS
+        //---------------------------
 
         //connect to the server
         private void ConnectToServer()
         {
-            if (hostname == null || hostname.Length <= 0)
+            if (Hostname == null || Hostname.Length <= 0)
             {
                 System.Windows.MessageBox.Show("Invalid hostname entered!");
                 return;
@@ -92,7 +35,7 @@ namespace AudioStreaming
                 SocketType.Stream, ProtocolType.Tcp);
 
             //lets connect!
-            this.Connect(hostname, 8666);
+            this.Connect(Hostname, 8666);
 
             //if we are connected, we check if nicely and start the handshake with the server
             //unlike the server, i haven't found a good way to handle it in the background so we are stuck in the while loop
@@ -105,13 +48,13 @@ namespace AudioStreaming
                     byte[] buffer = null;
                     int size = 0;
                     byte recv_multi = 0;
-                    
+
 
                     if (connection_init == 0)
                     {
                         //start handshake
                         byte[] msg = { 0xDE, 0xAD, 0xFF, 0xFF, (byte)((compressed) ? 0x01 : 0x00), (byte)((mp3Mode) ? 0x01 : 0x00) };
-                        size = SendData(Protocol.INIT_REQ,msg);
+                        size = SendData(Protocol.INIT_REQ, msg);
                         if (size < msg.Length)
                         {
                             //failed to send the init data asking for the info
@@ -122,7 +65,7 @@ namespace AudioStreaming
                         //get the response & validate it
                         size = GetData(ref buffer);
 
-                        if (size < 0x0e || buffer[0] != Protocol.INIT_REQ_RESPONSE 
+                        if (size < 0x0e || buffer[0] != Protocol.INIT_REQ_RESPONSE
                             || ByteConversion.ByteArrayToUInt(buffer, 5) == 0xDEADFFFF || (buffer[7] << 8) + buffer[8] != audioPlayer._VERSION)
                         {
                             error = Error.RESPONSE_FAIL;
@@ -132,33 +75,30 @@ namespace AudioStreaming
                         //recompile the information from the packet and use it
                         int samplerate = (buffer[9] << 8) + buffer[10];
                         int channels = buffer[11];
-                        compressed = (buffer[buffer.Length -2] != 0) ? true : false;
+                        compressed = (buffer[buffer.Length - 2] != 0) ? true : false;
                         mp3Mode = (buffer[buffer.Length - 1] != 0) ? true : false;
 
-                        if (!mp3Mode)
-                        {
-                            audioPlayer.SetWaveFormat(samplerate, channels);
-                        }
 
                         //send that we were able to init.
-                        size = SendData(Protocol.INIT_ACK,null);
+                        size = SendData(Protocol.INIT_ACK, null);
                         if (size < 0)
                             error = Error.GEN_NET_FAIL;
 
                         //connection is init!
                         //if we aren't running in mp3mode then lets start the audiobackend already
                         //in mp3Mode we will wait for the first frame
-                        if(mp3Mode == false)
+                        if (mp3Mode == false)
                         {
-                            audioPlayer.StartPlaying(Volume);
+                            audioPlayer.SetWaveFormat(samplerate, channels);
+                            audioPlayer.StartPlaying();
+                            RegisterPropertyChanged();
                         }
                         connection_init = 1;
-                        BufferLenght = 0;
                     }
                     else
                     {
                         size = GetData(ref buffer);
-                        if ( size > 0)
+                        if (size > 0)
                         {
                             if (size - 5 <= 0)
                                 continue;
@@ -181,9 +121,9 @@ namespace AudioStreaming
                                     //wait for all data to be played
                                     while (audioPlayer.WaitForMoreData() > 0)
                                     {
-                                        BufferLenght = audioPlayer.BufferLenght;
                                     }
                                     //stop player, and then add the next frame. this will reinit the player
+                                    UnregisterPropertyChanged();
                                     audioPlayer.StopPlaying();
                                     recv_multi = data[0];
                                     goto case Protocol.SEND_DATA;
@@ -198,13 +138,13 @@ namespace AudioStreaming
                                         int i = 1;
                                         do
                                         {
-                                            byte[] frame = new byte[1]; 
+                                            byte[] frame = new byte[1];
                                             int frameSize = 0;
                                             int index = 0;
 
                                             if (recv_multi <= 0)
                                             {
-                                                 frame = data;
+                                                frame = data;
                                             }
                                             else
                                             {
@@ -212,8 +152,8 @@ namespace AudioStreaming
                                                 byte[] _temp = new byte[2];
 
                                                 //the index is in the 1st & 2nd bytes of the frame's header of the packet
-                                                Array.Copy(data,(4 * i) - 3,_temp,0,2);
-                                                index = ByteConversion.ByteArrayToInt(_temp,0);
+                                                Array.Copy(data, (4 * i) - 3, _temp, 0, 2);
+                                                index = ByteConversion.ByteArrayToInt(_temp, 0);
 
                                                 //retrieve size of current frame, which is in the 3th & 4th bytes of the frame's header of the packet
                                                 Array.Copy(data, (4 * i) - 1, _temp, 0, 2);
@@ -229,6 +169,7 @@ namespace AudioStreaming
                                             if (mp3Mode)
                                             {
                                                 audioPlayer.AddNextFrame(frame);
+                                                RegisterPropertyChanged();
                                             }
                                             else
                                             {
@@ -237,13 +178,9 @@ namespace AudioStreaming
 
                                             i++;
                                         } while (i <= recv_multi);
-                                        
+
 
                                         audioPlayer.WaitForMoreData();
-                                        //i dont know how i can link these 2, so right now i need to call the set so that it refreshes on the GUI. 
-                                        //which is fail
-                                        //TODO : fix this if i can, without redesigning everything <<
-                                        BufferLenght = audioPlayer.BufferLenght;
                                     }
                                     catch (Exception ex)
                                     {
@@ -254,7 +191,7 @@ namespace AudioStreaming
                                     //NOTE : currently ACK is disabled deu to audio lag then. im guessing the PCM is to much and going to fast to send an ack in between
                                     if (mp3Mode)
                                     {
-                                        if(recv_multi <= 0)
+                                        if (recv_multi <= 0)
                                             SendData(Protocol.SEND_DATA_ACK, null);
                                         else
                                             SendData(Protocol.SEND_MULTI_ACK, null);
@@ -272,7 +209,7 @@ namespace AudioStreaming
                         }
 
                     }
-                    if(error != Error.NONE)
+                    if (error != Error.NONE)
                         break;
                 }
 
@@ -280,7 +217,7 @@ namespace AudioStreaming
             else
             {
                 //failed to connect lol
-                System.Windows.MessageBox.Show("Error connecting to Server : " + hostname + " !");
+                System.Windows.MessageBox.Show("Error connecting to Server : " + Hostname + " !");
                 Debug.WriteLine("CLIENT : CONNECTION FAILURE");
             }
             //ERRORZ
@@ -292,30 +229,18 @@ namespace AudioStreaming
             return;
         }
 
-        //add the received data to the AudioBackend's buffer
-        private void AddDataToBuffer(ref byte[] data)
-        {
-            if (data == null || data.Length <= 0)
-                return;
-
-            audioPlayer.AddSamples(ref data);
-            
-            return;
-        }
-
         //KILL IT WITH FIRE
         //...please dont... :(
         private void CloseClient()
         {
             CleanupNetworking();
 
-            BufferLenght = 0;
             audioPlayer.StopPlaying();
+            UnregisterPropertyChanged();
 
             ThreadAlive = false;
             killThread = false;
 
         }
-
     }
 }

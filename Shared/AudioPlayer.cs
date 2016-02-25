@@ -22,7 +22,7 @@ namespace AudioStreaming
             get
             {
                 if (volumeHandler == null)
-                    return -1;
+                    return volume*100;
                 return (volumeHandler.Volume >= 1)?100:volumeHandler.Volume*100;
             }
             set
@@ -71,9 +71,8 @@ namespace AudioStreaming
             }
             KillAll();
         }
-
         //Set's up for playing a stream. basically sets up the DirectSound and the buffer. to add audio to the buffer we call AddSamples with the data
-        public void StartPlaying(float volume)
+        public void StartPlaying()
         {
             if (waveFormat == null)
                 return;
@@ -84,7 +83,7 @@ namespace AudioStreaming
             //setup the 'provider'. from what i understood this is what takes the input wave and converts it into what directsound understands. which afaik is PCM
             out_buffer = new BufferedWaveProvider(waveFormat);
             volumeHandler = new VolumeWaveProvider16(out_buffer);
-            Volume = volume;
+            volumeHandler.Volume = volume;
 
             waveOut.Init(volumeHandler);
 
