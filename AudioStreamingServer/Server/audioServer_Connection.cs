@@ -9,76 +9,20 @@ using System.Threading;
 
 namespace AudioStreaming
 {
-    class audioServer : NetworkBackend
+    public partial class audioServer : NetworkBackend
     {
-        public audioServer()
-        {
-            audioPlayer = new AudioRecorder();
-            GetDevices();
-            return;
-        }
-
-        //----------------------
-        //subclasses
-        //----------------------
-        /// <summary>
-        /// class to contain the device information
-        /// </summary>
-        public class Device
-        {
-            public string Device_name { get; set; }
-            public int Channels { get; set; }
-        }
-
+        
         //----------------------
         //variables
         //----------------------
-        public IList<Device> Devices { get; set; }
-        private int deviceIndex = 0;
-
         private byte serverStarted = 0;
         private byte data_send = 0;
-        private TcpListener serverSocket = null;
-
-        private string mp3Path = "C:\\";
-        private List<string> filesList = null;
-
-        AudioRecorder audioPlayer = null;      
+        private TcpListener serverSocket = null;   
 
 
         //----------------------
         //functions
         //----------------------
-
-        /// <summary>
-        /// Gets all audio devices installed on the device and store them in 'Devices' which is data linked to the GUI
-        /// </summary>
-        private void GetDevices()
-        {
-            List<NAudio.Wave.WaveInCapabilities> devices = new List<NAudio.Wave.WaveInCapabilities>();
-
-            //gets the input (wavein) devices and adds them to the list
-            for (short i = 0; i < NAudio.Wave.WaveIn.DeviceCount; i++)
-            {
-                devices.Add(NAudio.Wave.WaveIn.GetCapabilities(i));
-            }
-
-            //claer the listview module
-            Devices = new List<Device>();
-
-            //each device gets inserted into the devices list, which is linked to the listdevices listview module
-            foreach (var device in devices)
-            {
-                ListViewItem item = new ListViewItem();
-                item.Content = device.ProductName;
-                Devices.Add(new Device() { Device_name = device.ProductName, Channels = device.Channels });
-            }
-        }
-
-        public int GetDevicesCount()
-        {
-            return Devices.Count;
-        }
 
         /// <summary>
         /// Stop the server
@@ -98,12 +42,11 @@ namespace AudioStreaming
                 closeServer();
             }
         }
-        public void StartServer(int indexDevice, string _mp3Path)
+        public void StartServer(int indexDevice)
         {
             if (ThreadAlive)
                 return;
 
-            mp3Path = _mp3Path;
             deviceIndex = indexDevice;
             Thread oThread = new Thread(new ThreadStart(this.Server));
             oThread.Name = "Server main Thread";
@@ -114,7 +57,7 @@ namespace AudioStreaming
             //Server();
 
         }
-        //Start's the audio server. this needs the samplerate & channels cause we need to send these to the client during init
+        //Start's the audio server.
         public void Server()
         {
             if (ThreadAlive == true)
@@ -422,45 +365,7 @@ namespace AudioStreaming
             
             return;
         }
-        private void GeneratePlayList()
-        {
-            if (mp3Path == null)
-                return;
-
-            filesList = new List<string>();
-            filesList.AddRange(Directory.GetFiles(mp3Path, "*.mp3", System.IO.SearchOption.AllDirectories));
-
-            Debug.WriteLine("{0} Files found.", filesList.Count);
-        }
-        private void OpenMp3File()
-        {
-            OpenMp3File(true);
-        }
-        private int OpenMp3File(bool random)
-        {
-            if (filesList == null || filesList.Count <= 0)
-                GeneratePlayList();
-
-
-            int index = -1;
-            if (filesList.Count > 0)
-            {
-                if (random == true)
-                {
-                    Random rand = new Random();
-                    index = rand.Next(0, filesList.Count);
-                }
-                else
-                {
-                    index = 0;
-                }
-                Debug.WriteLine("opening {0}...", filesList[index]);
-
-
-                audioPlayer.OpenMp3File(filesList[index]);
-            }
-            return index;
-        }
+        
         //send the Audio, in the eventarg's buffer , to the client.
         //TODO : add compression and play with the ACK when getting device output
         private void SendData(object sender, NAudio.Wave.WaveInEventArgs e)

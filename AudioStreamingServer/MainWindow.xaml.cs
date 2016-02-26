@@ -37,21 +37,21 @@ namespace AudioStreaming.Server
             InitializeComponent();
 
             Server = new audioServer();
-            this.DataContext = Server;
+            grdMain.DataContext = Server;
 
             if (Server.GetDevicesCount() > 0 && listDevices.SelectedIndex < 0)
             {
                 listDevices.SelectedIndex = 0;
             }
 
-            txtMp3Path.Text = System.IO.Directory.GetCurrentDirectory(); //@"H:\stuff\MP3's\"          
+            Server.mp3Path = System.IO.Directory.GetCurrentDirectory(); //@"H:\stuff\MP3's\"  
         }
 
         private void btStart_Click(object sender, RoutedEventArgs e)
         {
             if (Server.GetDevicesCount() > 0)
             {
-                Server.StartServer(listDevices.SelectedIndex,txtMp3Path.Text);
+                Server.StartServer(listDevices.SelectedIndex);
 
             }
         }

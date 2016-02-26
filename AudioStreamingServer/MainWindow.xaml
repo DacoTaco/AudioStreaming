@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="AudioStreaming : Server" Height="350" Width="594" ResizeMode="NoResize" Closed="CloseApp">
-    <Grid ShowGridLines="True">
+    <Grid Name="grdMain"  ShowGridLines="True">
         <ListView x:Name="listDevices" HorizontalAlignment="Left" Height="300" Margin="10,10,0,0" VerticalAlignment="Top" Width="274" SelectionMode="Single" ItemsSource="{Binding Devices}" IsEnabled="{Binding Path=enableControls}">
             <ListView.View>
                 <GridView AllowsColumnReorder="False">
@@ -13,7 +13,7 @@
         </ListView>
         <Button x:Name="btStart" Content="Start" HorizontalAlignment="Left" Margin="303,94,0,0" VerticalAlignment="Top" Width="75" Click="btStart_Click" IsEnabled="{Binding Path=enableControls}" />
         <Button x:Name="btStop" Content="Stop" HorizontalAlignment="Left" Margin="476,94,0,0" VerticalAlignment="Top" Width="75" Click="btStop_Click" IsEnabled="{Binding Path=ThreadAlive}" RenderTransformOrigin="1.36,0.455"/>
-        <TextBox x:Name="txtMp3Path" HorizontalAlignment="Left" Height="23" Margin="303,42,0,0" TextWrapping="Wrap" Text="C:\" VerticalAlignment="Top" Width="174" IsEnabled="{Binding Path=enableControls}"/>
+        <TextBox x:Name="txtMp3Path" HorizontalAlignment="Left" Height="23" Margin="303,42,0,0" TextWrapping="Wrap" Text="{Binding Path=mp3Path,UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="174" IsEnabled="{Binding Path=enableControls}"/>
         <Button x:Name="btBrowsePath" Content="Browse.." HorizontalAlignment="Left" VerticalAlignment="Top" Width="59" Margin="492,42,0,0" Click="GetMp3Path" IsEnabled="{Binding Path=enableControls}"/>
     </Grid>
 </Window>
