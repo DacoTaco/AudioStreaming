@@ -37,6 +37,11 @@ namespace AudioStreaming
                 OnPropertyChanged("Volume");
             }
         }
+
+
+        public delegate void BackendHandler(object sender, bool State);
+        public event BackendHandler backendHandler;
+
         //functions
         //--------------------------------
 
@@ -51,6 +56,9 @@ namespace AudioStreaming
         //public void StopPlaying(object sender, EventArgs e)
         public void StopPlaying()
         {
+            //signal event we are shutting down
+            if (backendHandler != null)
+                backendHandler(this, false);
 
             if (decompressor != null)
             {
@@ -86,6 +94,10 @@ namespace AudioStreaming
             volumeHandler.Volume = volume;
 
             waveOut.Init(volumeHandler);
+
+            //signal event we are set up
+            if (backendHandler != null)
+                backendHandler(this, true);
 
             waveOut.Play();
         }
@@ -126,6 +138,11 @@ namespace AudioStreaming
             //1.0 = full volume, 0.0 = silence
             volumeHandler.Volume = volume;
             waveOut.Init(volumeHandler);
+
+            //signal event we are set up
+            if (backendHandler != null)
+                backendHandler(this, true);
+
             waveOut.Play();
         }
         public int AddNextFrame(byte[] frame)

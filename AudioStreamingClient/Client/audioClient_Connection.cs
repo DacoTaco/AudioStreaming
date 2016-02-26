@@ -91,7 +91,6 @@ namespace AudioStreaming.Client
                         {
                             audioPlayer.SetWaveFormat(samplerate, channels);
                             audioPlayer.StartPlaying();
-                            RegisterPropertyChanged();
                         }
                         connection_init = 1;
                     }
@@ -123,7 +122,6 @@ namespace AudioStreaming.Client
                                     {
                                     }
                                     //stop player, and then add the next frame. this will reinit the player
-                                    UnregisterPropertyChanged();
                                     audioPlayer.StopPlaying();
                                     recv_multi = data[0];
                                     goto case Protocol.SEND_DATA;
@@ -169,7 +167,6 @@ namespace AudioStreaming.Client
                                             if (mp3Mode)
                                             {
                                                 audioPlayer.AddNextFrame(frame);
-                                                RegisterPropertyChanged();
                                             }
                                             else
                                             {
@@ -236,7 +233,6 @@ namespace AudioStreaming.Client
             CleanupNetworking();
 
             audioPlayer.StopPlaying();
-            UnregisterPropertyChanged();
 
             ThreadAlive = false;
             killThread = false;

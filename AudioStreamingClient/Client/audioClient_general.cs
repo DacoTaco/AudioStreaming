@@ -59,8 +59,17 @@ namespace AudioStreaming.Client
         public audioClient()
         {
             audioPlayer = new AudioPlayer();
+            audioPlayer.backendHandler += AudioPlayer_backendHandler;
             settings.LoadSettings();
             return;
+        }
+
+        void AudioPlayer_backendHandler(object sender, bool State)
+        {
+            if (State == true)
+                RegisterPropertyChanged();
+            else
+                UnregisterPropertyChanged();
         }
 
         public void StartConnection(string hostname, bool compressData, bool _mp3Mode)
