@@ -33,7 +33,11 @@ namespace AudioStreaming.Server
         public IList<Device> Devices { get; set; }
         audioServer Server;
         DebugListener debug;
+
+
+        //----------------------
         //functions
+        //----------------------
         public MainWindow()
         {
             InitializeComponent();

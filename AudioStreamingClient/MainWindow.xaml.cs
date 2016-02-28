@@ -15,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Diagnostics;
 using System.Collections;
+using AudioStreaming.Utils;
 
 namespace AudioStreaming.Client
 {
@@ -25,6 +26,7 @@ namespace AudioStreaming.Client
     {
 
         private audioClient Client = new audioClient();
+        DebugListener debug;
 
         
 
@@ -41,6 +43,10 @@ namespace AudioStreaming.Client
 
             //for the disabling of controls
             grdConnectionControls.DataContext = Client;
+
+            //enable debugging output
+            debug = new DebugListener(txtDebug);
+            Debug.Listeners.Add(debug);  
         }
         private void CheckBoxChanged(object sender, RoutedEventArgs e)
         {
