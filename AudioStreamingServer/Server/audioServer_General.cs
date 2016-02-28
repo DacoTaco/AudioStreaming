@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Controls;
+using TagLib;
 
 namespace AudioStreaming
 {
@@ -26,7 +27,6 @@ namespace AudioStreaming
         public IList<Device> Devices { get; set; }
         private int deviceIndex = 0;
 
-        //public string mp3Path = "C:\\";
         private string _mp3Path;
 
         public string mp3Path
@@ -41,6 +41,19 @@ namespace AudioStreaming
                 }
             }
         }
+
+        private string songName;
+
+        public string SongName
+        {
+            get { return songName; }
+            set 
+            { 
+                if(value != songName)
+                    songName = value; 
+            }
+        }
+        
         
         private List<string> filesList = null;
 
@@ -120,10 +133,19 @@ namespace AudioStreaming
                 {
                     index = 0;
                 }
-                Debug.WriteLine("opening {0}...", filesList[index]);
 
+                TagLib.File tag = TagLib.File.Create(filesList[index]);
 
-                audioPlayer.OpenMp3File(filesList[index]);
+                if (tag.Tag.JoinedPerformers == "" || tag.Tag.Title == "")
+                    SongName = String.Format("playing : {0}",filesList[index]);
+                else
+                    SongName = String.Format("playing : {0} - {1}", tag.Tag.JoinedPerformers, tag.Tag.Title);
+
+                Debug.WriteLine(SongName);
+
+                tag.Dispose();
+
+                audioPlayer.OpenMp3File(filesList[index]);                
             }
             return index;
         }

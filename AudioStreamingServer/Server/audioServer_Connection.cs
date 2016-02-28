@@ -105,10 +105,10 @@ namespace AudioStreaming
                     }
 
 
-                    string hex = "0x" + BitConverter.ToString(bytesFrom);
+                    /*string hex = "0x" + BitConverter.ToString(bytesFrom);
                     hex = hex.Replace("-", " 0x");
                     Debug.WriteLine(" >> Data from client - {0}", hex);
-                    Debug.WriteLine(" lenght : {0}", lenght);
+                    Debug.WriteLine(" lenght : {0}", lenght);*/
 
                     //check if the packet is correct. it should be 0xINIT_REQ 0x00 0x00 0x00 0x0A 0xDE 0xAD 0xFF 0xFF 0xcompressed
                     if (bytesFrom[0] == Protocol.INIT_REQ && ByteConversion.ByteArrayToUInt(bytesFrom, 5) == 0xDEADFFFF)

@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using Ookii.Dialogs.Wpf;
+using System.Diagnostics;
+using AudioStreaming.Utils;
 
 namespace AudioStreaming.Server
 {
@@ -30,7 +32,7 @@ namespace AudioStreaming.Server
         //----------------------
         public IList<Device> Devices { get; set; }
         audioServer Server;
-
+        DebugListener debug;
         //functions
         public MainWindow()
         {
@@ -45,6 +47,9 @@ namespace AudioStreaming.Server
             }
 
             Server.mp3Path = System.IO.Directory.GetCurrentDirectory(); //@"H:\stuff\MP3's\"  
+            debug = new DebugListener(txtDebug);
+            Debug.Listeners.Add(debug);  
+          
         }
 
         private void btStart_Click(object sender, RoutedEventArgs e)
