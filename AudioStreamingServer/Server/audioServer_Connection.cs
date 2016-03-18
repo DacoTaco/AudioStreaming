@@ -32,7 +32,7 @@ namespace AudioStreaming
             if (mp3Mode)
             {
                 //this kills the thread which should have exited cleanly and cleaned up after itself
-                KillThread();
+                KillThread(); 
             }
             else
             {
