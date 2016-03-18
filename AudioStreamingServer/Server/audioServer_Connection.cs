@@ -66,9 +66,6 @@ namespace AudioStreaming
             if (mp3Path == null)
                 throw new ArgumentNullException("StartServer : Path is null!");
 
-            //server has officially started
-            serverStarted = 1;
-
             //Start & setup the listeningsocket
             Networking.SetupListener(ref serverSocket, 8666);
 
@@ -86,6 +83,8 @@ namespace AudioStreaming
             clientSocket = serverSocket.AcceptSocket();
             Debug.WriteLine(" >> Accept connection from client @ " + clientSocket.RemoteEndPoint);
 
+            //server has officially started
+            serverStarted = 1;
             error = Error.NONE;
             int lenght = 0;
             byte[] bytesFrom = null;
@@ -363,8 +362,7 @@ namespace AudioStreaming
             }
             else if(killThread)
                 closeServer();
-
-            ThreadAlive = false;
+            
             return;
         }
         

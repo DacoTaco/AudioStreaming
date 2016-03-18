@@ -68,13 +68,5 @@ namespace AudioStreaming.Client
         {
             Client.KillThread();
         }
-
-        private void ChangeUISize(object sender, RoutedEventArgs e)
-        {
-            if (expDebug.IsExpanded)
-                mainWindow.Height += 200;
-            else
-                mainWindow.Height -= 200;
-        }
     }
 }
