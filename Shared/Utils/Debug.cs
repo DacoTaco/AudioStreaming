@@ -17,7 +17,7 @@ namespace AudioStreaming.Utils
         public override void Write(string msg)
         {
             //allows tBox to be updated from different thread
-            tBox.Dispatcher.Invoke(new Action(() => {tBox.Text += msg; }), DispatcherPriority.ContextIdle);
+            tBox.Dispatcher.Invoke(new Action(() => {/*tBox.Text += msg;*/tBox.AppendText(msg); }), DispatcherPriority.ContextIdle);
         }
 
         public override void WriteLine(string msg)
