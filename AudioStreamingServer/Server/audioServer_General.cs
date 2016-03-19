@@ -92,11 +92,11 @@ namespace AudioStreaming
                 TagLib.File tag = TagLib.File.Create(filesList[index]);
 
                 if (tag.Tag.JoinedPerformers == "" || tag.Tag.Title == "")
-                    SongName = String.Format("playing : {0}",filesList[index]);
+                    SongName = String.Format("{0}",filesList[index]);
                 else
-                    SongName = String.Format("playing : {0} - {1}", tag.Tag.JoinedPerformers, tag.Tag.Title);
+                    SongName = String.Format("{0} - {1}", tag.Tag.JoinedPerformers, tag.Tag.Title);
 
-                Debug.WriteLine(SongName);
+                Debug.WriteLine(String.Format("playing : {0}",SongName));
 
                 tag.Dispose();
 

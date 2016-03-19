@@ -198,6 +198,11 @@ namespace AudioStreaming
                     //OpenMp3File(true);
                     audioPlayer.OpenMp3File(@"H:\stuff\MP3's\rob zombie\Rob Zombie - Hellbilly Deluxe (MP3@320 kbps)\01. Rob Zombie - Call Of The Zombie.mp3");//"H:\stuff\MP3's\various\Imagine Dragons - Warriors.mp3");
                 }*/
+
+
+                //before we enter our main loop, we need To send the title
+                SendNewTitle();
+
                 //while the connection is there, try to init and see if more is needed to be done
                 while (CheckConnection() && killThread == false)
                 {
@@ -233,6 +238,9 @@ namespace AudioStreaming
                                         error = Error.MP3_READ_ERROR;
                                         break;
                                     }
+                                    //we have a new file, lets send the new title first :)
+                                    SendNewTitle();
+
                                     //compare the frame with the waveform from the last file.
                                     if (!audioPlayer.IsWaveformatEqual(frame))
                                     {
@@ -364,6 +372,13 @@ namespace AudioStreaming
                 closeServer();
             
             return;
+        }
+
+        private void SendNewTitle()
+        {
+            byte[] data = compressed ? Compressor.Compress(System.Text.Encoding.UTF8.GetBytes(SongName)) : System.Text.Encoding.UTF8.GetBytes(SongName);
+            
+            SendData(Protocol.NEW_TITLE, data);
         }
         
         //send the Audio, in the eventarg's buffer , to the client.

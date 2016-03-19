@@ -114,6 +114,11 @@ namespace AudioStreaming.Client
                             //we have data to process!
                             switch (buffer[0])
                             {
+                                //we received the new title of the song playing
+                                case Protocol.NEW_TITLE:
+                                    string SongName = System.Text.Encoding.UTF8.GetString(data);
+                                    Debug.WriteLine("new title : {0}", SongName);
+                                    break;
                                 //we received data to play!
                                 case Protocol.REINIT_BACKEND:
                                     //we received command to reinit the backend

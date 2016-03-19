@@ -28,6 +28,8 @@ namespace AudioStreaming
         public const byte REINIT_BACKEND = 0x30;
         public const byte REINIT_DONE = 0x31;
 
+        public const byte NEW_TITLE = 0x40;
+
     }
     static public class Error
     {
