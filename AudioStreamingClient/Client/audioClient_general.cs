@@ -53,6 +53,27 @@ namespace AudioStreaming.Client
             }
         }
 
+        private string songName;
+
+        public string SongName
+        {
+            get 
+            {
+                if (songName == null || songName == "")
+                    return "Unknown";
+                return songName; 
+            }
+            set 
+            {
+                if (value != songName || value != null)
+                {
+                    songName = value;
+                    OnPropertyChanged("SongName");
+                }
+            }
+        }
+        
+
         //---------------------------
         //       FUCNTIONS
         //---------------------------
