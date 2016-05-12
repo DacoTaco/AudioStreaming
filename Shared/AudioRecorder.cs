@@ -67,6 +67,13 @@ namespace AudioStreaming
             if (path == null)
                 throw new ArgumentNullException("OpenMp3File : path is null!");
 
+            if (mp3Reader != null)
+            {
+                mp3Reader.Close();
+                mp3Reader.Dispose();
+                mp3Reader = null;
+            }
+
             mp3Reader = new Mp3FileReader(path);
 
             return (mp3Reader == null) ? false : true;

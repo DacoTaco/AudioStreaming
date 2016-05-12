@@ -40,6 +40,8 @@ namespace AudioStreaming.Client
             txbHostname.DataContext = Client.settings;
             cbMp3Mode.DataContext = Client.settings;
             cbCompress.DataContext = Client.settings;
+            btnNext.DataContext = Client.settings;
+            btnPrev.DataContext = Client.settings;
 
             //for the disabling of controls
             grdConnectionControls.DataContext = Client;
@@ -71,10 +73,32 @@ namespace AudioStreaming.Client
 
         private void ChangeUISize(object sender, RoutedEventArgs e)
         {
+            if( sender.GetType() != expDebug.GetType() && ( ((Expander)sender).Name != expDebug.Name))
+                return;
             if (expDebug.IsExpanded)
                 mainWindow.Height += 200;
             else
                 mainWindow.Height -= 200;
+        }
+
+        private void PlayerControl(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button)
+            {
+                switch (((Button)sender).Name)
+                {
+                    case "btnPrev":
+                        Client.RequestPrev();
+                        break;
+                    case "btnNext":
+                        Client.RequestNext();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+                return;
         }
     }
 }

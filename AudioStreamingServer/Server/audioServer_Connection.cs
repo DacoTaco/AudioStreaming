@@ -209,134 +209,12 @@ namespace AudioStreaming
                 {
                     if (mp3Mode)
                     {
-                        NAudio.Wave.Mp3Frame frame = null;
-                        byte command = Protocol.SEND_DATA;
-                        byte[] data = new byte[1];
 
-
-                        //multi-frame function
-                        //--------------------------
-                        byte[] header = new byte[5];
-                        int[] indexes = new int[1];
-                        indexes[0] = 0x00;
-
-                        //compile header for the first frame
-                        header[0] = 1;
-                        header[1] = header[3] = header[4] = 0;
-                        header[2] = 0x05;
-
-                        for (byte i = 0; i < 25; i++)
-                        {
-                            frame = audioPlayer.GetNextMp3Frame();
-                            if (frame == null)
-                            {
-                                if (i == 0)
-                                {
-                                    OpenMp3File();
-                                    frame = audioPlayer.GetNextMp3Frame();
-                                    if (frame == null)
-                                    {
-                                        error = Error.MP3_READ_ERROR;
-                                        break;
-                                    }
-                                    //we have a new file, lets send the new title first :)
-                                    SendNewTitle();
-
-                                    //compare the frame with the waveform from the last file.
-                                    if (!audioPlayer.IsWaveformatEqual(frame))
-                                    {
-                                        //the frame is in a different format. we need to let the client know!
-                                        header[0] = 1;
-                                        header[1] = 0; //index of the next frame
-                                        header[2] = 0x05;
-                                        header[3] = ByteConversion.ByteFromInt(frame.RawData.Length, 2); //size
-                                        header[4] = ByteConversion.ByteFromInt(frame.RawData.Length, 3);
-                                        data = frame.RawData;
-                                        command = Protocol.REINIT_BACKEND;
-                                    }
-                                }
-                                break;
-                            }
-                            else
-                            {
-                                int oldSize = 0;
-                                if(i != 0)
-                                    oldSize = data.Length;
-
-                                //increase header for the new frame
-                                header[0] = Convert.ToByte(i + 1);// the amount of frames in the packet
-                                Array.Resize(ref header, (header[0] * 4) + 1);
-
-                                //add index for new frame
-                                Array.Resize(ref indexes, indexes.Length + 1);
-                                indexes[i] = oldSize;
-
-                                //set the lenght in header
-                                header[(i * 4) + 3] = ByteConversion.ByteFromInt(frame.RawData.Length, 2); //size
-                                header[(i * 4) + 4] = ByteConversion.ByteFromInt(frame.RawData.Length, 3);
-
-                                Array.Resize(ref data, frame.RawData.Length + oldSize);
-                                Array.Copy(frame.RawData,0, data,oldSize,frame.RawData.Length);
-                            }
-                        }
-                        if (command != Protocol.REINIT_BACKEND)
-                        {
-                            //complete packet
-                            for (int i = 0; i < header[0]; i++)
-                            {
-                                header[(i * 4) + 1] = ByteConversion.ByteFromInt(indexes[i] + header.Length, 2); //index of the next frame
-                                header[(i * 4) + 2] = ByteConversion.ByteFromInt(indexes[i] + header.Length, 3);
-                            }
-                            
-                        }
-
-                        byte[] _tempData = new byte[1];
-                        Array.Resize(ref _tempData, data.Length + header.Length);
-                        Array.Copy(header, _tempData, header.Length);
-                        Array.Copy(data, 0, _tempData, header.Length, data.Length);
-
-                        if (command != Protocol.REINIT_BACKEND)
-                            command = Protocol.SEND_MULTI_DATA;
-
-                        data = _tempData;
-
-                        //compress that shit!
-                        if(compressed)
-                            data = Compressor.Compress(data);
-
-                        int ret = SendData(command, data);
-
-                        if (ret < 0)
-                            break;
-
-                        byte[] buffer = null;
-                        do
-                        {
-                            ret = GetData(ref buffer);
-                            if (ret > 0 && ( buffer[0] == Protocol.SEND_DATA_ACK || buffer[0] == Protocol.SEND_MULTI_ACK) )
-                            {
-                                //continue;
-                                break;
-                            }
-                            else if (ret > 0)
-                            {
-                                //wrong response. kill connection
-                                closeServer();
-                                return;
-                            }
-                            if (ret < 0)
-                            {
-                                error = Error.RESPONSE_FAIL;
-                                break;
-                            }
-                            else
-                            {
-                                //no response from client yet, so we wait before we send more data
-                                System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
-                            }
-                        } while (true);
+                        DataAvailable();
+                        if (HandleMp3Mode() < 1)
+                            break;                        
                     }
-                    else
+                    else //Capture mode
                     {
                         //in the future we can use this switch for future communication
                         /*switch (bytesFrom[0])
@@ -374,6 +252,153 @@ namespace AudioStreaming
 
             ThreadAlive = false;
             return;
+        }
+
+        private byte HandleMp3Mode()
+        {
+            NAudio.Wave.Mp3Frame frame = null;
+            byte command = Protocol.SEND_DATA;
+            byte[] data = new byte[1];
+
+
+            //multi-frame function
+            //--------------------------
+            byte[] header = new byte[5];
+            int[] indexes = new int[1];
+            indexes[0] = 0x00;
+
+            //compile header for the first frame
+            header[0] = 1;
+            header[1] = header[3] = header[4] = 0;
+            header[2] = 0x05;
+
+            for (byte i = 0; i < 25; i++)
+            {
+                frame = audioPlayer.GetNextMp3Frame();
+                if (frame == null)
+                {
+                    if (i == 0)
+                    {
+                        OpenMp3File();
+                        frame = audioPlayer.GetNextMp3Frame();
+                        if (frame == null)
+                        {
+                            error = Error.MP3_READ_ERROR;
+                            break;
+                        }
+                        //we have a new file, lets send the new title first :)
+                        SendNewTitle();
+
+                        //compare the frame with the waveform from the last file.
+                        if (!audioPlayer.IsWaveformatEqual(frame))
+                        {
+                            //the frame is in a different format. we need to let the client know!
+                            header[0] = 1;
+                            header[1] = 0; //index of the next frame
+                            header[2] = 0x05;
+                            header[3] = ByteConversion.ByteFromInt(frame.RawData.Length, 2); //size
+                            header[4] = ByteConversion.ByteFromInt(frame.RawData.Length, 3);
+                            data = frame.RawData;
+                            command = Protocol.REINIT_BACKEND;
+                        }
+                    }
+                    break;
+                }
+                else
+                {
+                    int oldSize = 0;
+                    if(i != 0)
+                        oldSize = data.Length;
+
+                    //increase header for the new frame
+                    header[0] = Convert.ToByte(i + 1);// the amount of frames in the packet
+                    Array.Resize(ref header, (header[0] * 4) + 1);
+
+                    //add index for new frame
+                    Array.Resize(ref indexes, indexes.Length + 1);
+                    indexes[i] = oldSize;
+
+                    //set the lenght in header
+                    header[(i * 4) + 3] = ByteConversion.ByteFromInt(frame.RawData.Length, 2); //size
+                    header[(i * 4) + 4] = ByteConversion.ByteFromInt(frame.RawData.Length, 3);
+
+                    Array.Resize(ref data, frame.RawData.Length + oldSize);
+                    Array.Copy(frame.RawData,0, data,oldSize,frame.RawData.Length);
+                }
+            }
+            if (command != Protocol.REINIT_BACKEND)
+            {
+                //complete packet
+                for (int i = 0; i < header[0]; i++)
+                {
+                    header[(i * 4) + 1] = ByteConversion.ByteFromInt(indexes[i] + header.Length, 2); //index of the next frame
+                    header[(i * 4) + 2] = ByteConversion.ByteFromInt(indexes[i] + header.Length, 3);
+                }
+                            
+            }
+
+            byte[] _tempData = new byte[1];
+            Array.Resize(ref _tempData, data.Length + header.Length);
+            Array.Copy(header, _tempData, header.Length);
+            Array.Copy(data, 0, _tempData, header.Length, data.Length);
+
+            if (command != Protocol.REINIT_BACKEND)
+                command = Protocol.SEND_MULTI_DATA;
+
+            data = _tempData;
+
+            //compress that shit!
+            if(compressed)
+                data = Compressor.Compress(data);
+
+            int ret = SendData(command, data);
+
+            if (ret < 0)
+                return 0;
+
+            byte[] buffer = null;
+            do
+            {
+                ret = GetData(ref buffer);
+                if (ret > 0 && ( buffer[0] == Protocol.SEND_DATA_ACK || buffer[0] == Protocol.SEND_MULTI_ACK) )
+                {
+                    //continue;
+                    break;
+                }
+                else if (ret > 0 && (buffer[0] == Protocol.RECQ_NEXT_SONG || buffer[0] == Protocol.RECQ_PREV_SONG))
+                {
+                    if (buffer[0] == Protocol.RECQ_NEXT_SONG)
+                    {
+                        //client asked for new song. bugger.
+                        //TODO : fix the delay. for some reason it takes a few seconds before both server AND client realise what happened :/
+                        Debug.WriteLine("Server : Protocol.RECQ_NEXT_SONG Detected!");
+
+                        if (!OpenNextFile())
+                        {
+                            Debug.WriteLine("Server Failure : OpenNextFile returned false!");
+                            closeServer();
+                            return 0;
+                        }
+                    }
+                }
+                else if (ret > 0)
+                {
+                    //wrong response. kill connection
+                    closeServer();
+                    return 0;
+                }
+                if (ret < 0)
+                {
+                    error = Error.RESPONSE_FAIL;
+                    break;
+                }
+                else
+                {
+                    //no response from client yet, so we wait before we send more data
+                    System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(10));
+                }
+            } while (true);
+            return 1;
         }
 
         private void SendNewTitle()

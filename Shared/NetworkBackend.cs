@@ -78,6 +78,18 @@ namespace AudioStreaming
 
 
         //basically stubs for the networking backend
+        protected int DataAvailable()
+        {
+            try
+            {
+                return Networking.DataAvailable(clientSocket);
+            }
+            catch (SocketException ex)
+            {
+                Debug.WriteLine("DataAvailable FAILURE : {0} : {1}{2}{2}stacktrace : {3}", ex.ErrorCode, ex.Message, Environment.NewLine, ex.StackTrace);
+                return Error.EXCEP_FAIL;
+            }
+        }
         protected int GetData(ref byte[] buffer)
         {
             try
@@ -86,7 +98,7 @@ namespace AudioStreaming
             }
             catch (SocketException ex)
             {
-                Debug.WriteLine("RECEIVING DATA FAILURE : {0} : {1}{2}{3}stacktrace : {4}", ex.ErrorCode, ex.Message, Environment.NewLine, Environment.NewLine, ex.StackTrace);
+                Debug.WriteLine("RECEIVING DATA FAILURE : {0} : {1}{2}{2}stacktrace : {3}", ex.ErrorCode, ex.Message, Environment.NewLine, ex.StackTrace);
                 return Error.EXCEP_FAIL;
             }
         }

@@ -14,6 +14,7 @@ namespace AudioStreaming.Client
         //       VARIABLES
         //---------------------------
         private bool eventRegistered = false;
+        private bool recqNext = false;
 
         public Settings settings = new Settings();
 
@@ -117,6 +118,19 @@ namespace AudioStreaming.Client
         {
             settings.LoadSettings();
         }
+
+        public void RequestNext()
+        {
+            recqNext = true;
+            SendData(Protocol.RECQ_NEXT_SONG, null);
+            return;
+        }
+
+        public void RequestPrev()
+        {
+            return;
+        }
+
 
         //add the received data to the AudioBackend's buffer
         private void AddDataToBuffer(ref byte[] data)

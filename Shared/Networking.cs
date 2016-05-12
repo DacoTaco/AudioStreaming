@@ -30,6 +30,9 @@ namespace AudioStreaming
 
         public const byte NEW_TITLE = 0x40;
 
+        public const byte RECQ_NEXT_SONG = 0x50;
+        public const byte RECQ_PREV_SONG = 0x51;
+
     }
     static public class Error
     {
@@ -340,6 +343,17 @@ namespace AudioStreaming
                 return true;
             else
                 return false;
+        }
+
+        static public int DataAvailable(Socket clientSocket)
+        {
+            if (clientSocket == null)
+                return Error.GEN_NET_FAIL;
+            /*if (clientSocket.Available > 0)
+            {
+                Debug.WriteLine(String.Format("Data Available for reading : {0}",clientSocket.Available));
+            }*/
+            return 0;
         }
     }
 }

@@ -123,9 +123,13 @@ namespace AudioStreaming.Client
                                 case Protocol.REINIT_BACKEND:
                                     //we received command to reinit the backend
                                     //wait for all data to be played
-                                    while (audioPlayer.WaitForMoreData() > 0)
+                                    if (!recqNext)
                                     {
+                                        while (audioPlayer.WaitForMoreData() > 0)
+                                        {
+                                        }
                                     }
+                                    recqNext = false;
                                     //stop player, and then add the next frame. this will reinit the player
                                     audioPlayer.StopPlaying();
                                     recv_multi = data[0];
@@ -241,6 +245,8 @@ namespace AudioStreaming.Client
 
             ThreadAlive = false;
             killThread = false;
+            BufferLenght = 0;
+            SongName = "Unknown";
 
         }
     }
