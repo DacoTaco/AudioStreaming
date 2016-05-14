@@ -47,6 +47,8 @@ namespace AudioStreaming
         private List<string> filesList = null;
 
         AudioRecorder audioPlayer = null;
+        List<int> playedListIndexes = new List<int>();
+
 
         //----------------------
         //functions
@@ -68,29 +70,17 @@ namespace AudioStreaming
 
             Debug.WriteLine("{0} Files found.", filesList.Count);
         }
-        private void OpenMp3File()
+        private int OpenMp3File()
         {
-            OpenMp3File(true);
+            return OpenMp3File(true);
         }
-        private int OpenMp3File(bool random)
+        private int OpenMp3File(int index)
         {
             if (filesList == null || filesList.Count <= 0)
                 GeneratePlayList();
 
-
-            int index = -1;
             if (filesList.Count > 0)
             {
-                if (random == true)
-                {
-                    Random rand = new Random();
-                    index = rand.Next(0, filesList.Count);
-                }
-                else
-                {
-                    index = 0;
-                }
-
                 TagLib.File tag = TagLib.File.Create(filesList[index]);
 
                 if (tag.Tag.JoinedPerformers == "" || tag.Tag.Title == "")
@@ -101,12 +91,92 @@ namespace AudioStreaming
                 Debug.WriteLine(String.Format("playing : {0}",SongName));
 
                 tag.Dispose();
-
-                audioPlayer.OpenMp3File(filesList[index]);                
+                
+                if(!playedListIndexes.Contains(index))
+                    playedListIndexes.Add(index);
+                     
             }
+            audioPlayer.OpenMp3File(filesList[index]);
             return index;
+
         }
 
+        private int OpenMp3File(bool random)
+        {
+            int index = -1;
+            if (random == true)
+            {
+                Random rand = new Random();
+                int attempt = 0;
+                do
+                {
+                    index = rand.Next(0, filesList.Count);
+                    attempt++;
+
+                } while (playedListIndexes.Contains(index) && attempt < filesList.Count );
+
+                playedListIndexes.Add(index);
+            }
+            else
+            {
+                index = 0;
+            }
+            return OpenMp3File(index);
+        }
+
+        private bool OpenPreviousFile()
+        {
+            NAudio.Wave.Mp3Frame frame = null;
+            byte[] header = new byte[5];
+            byte[] data = new byte[1];
+            byte command = Protocol.SEND_MULTI_DATA;
+
+            if(playedListIndexes.Count > 1)
+                OpenMp3File(playedListIndexes[playedListIndexes.Count -2]);
+            else
+                OpenMp3File(playedListIndexes[playedListIndexes.Count - 1]);
+
+
+            frame = audioPlayer.GetNextMp3Frame();
+            if (frame == null)
+            {
+                error = Error.MP3_READ_ERROR;
+                return false;
+            }
+            //we have a new file, lets send the new title first :)
+            SendNewTitle();
+
+            //compare the frame with the waveform from the last file.
+            if (!audioPlayer.IsWaveformatEqual(frame))
+            {
+                //the frame is in a different format. we need to let the client know!
+                header[0] = 1;
+                header[1] = 0; //index of the next frame
+                header[2] = 0x05;
+                header[3] = ByteConversion.ByteFromInt(frame.RawData.Length, 2); //size
+                header[4] = ByteConversion.ByteFromInt(frame.RawData.Length, 3);
+                data = frame.RawData;
+                command = Protocol.REINIT_BACKEND;
+            }
+
+            byte[] _tempData = new byte[1];
+            Array.Resize(ref _tempData, data.Length + header.Length);
+            Array.Copy(header, _tempData, header.Length);
+            Array.Copy(data, 0, _tempData, header.Length, data.Length);
+
+            data = _tempData;
+
+            //compress that shit!
+            if (compressed)
+                data = Compressor.Compress(data);
+
+            int ret = SendData(command, data);
+
+            if (ret < 0)
+                return false;
+            else
+                return true;
+        }
         private bool OpenNextFile()
         {
             NAudio.Wave.Mp3Frame frame = null;

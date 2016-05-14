@@ -120,21 +120,24 @@ namespace AudioStreaming
         }
         protected void CleanupNetworking()
         {
-            if (clientSocket.Connected)
+            if (clientSocket != null)
             {
-                try
+                if (clientSocket.Connected)
                 {
-                    clientSocket.Disconnect(false);
-                    clientSocket.Shutdown(SocketShutdown.Both);
-                    clientSocket.Close();
+                    try
+                    {
+                        clientSocket.Disconnect(false);
+                        clientSocket.Shutdown(SocketShutdown.Both);
+                        clientSocket.Close();
+                    }
+                    catch (SocketException e)
+                    {
+                        Debug.WriteLine("Exception when closing the connection. error {0}\n", e.Message);
+                        //do nothing
+                    }
                 }
-                catch (SocketException e)
-                {
-                    Debug.WriteLine("Exception when closing the connection. error {0}\n", e.Message);
-                    //do nothing
-                }
+                clientSocket.Dispose();
             }
-            clientSocket.Dispose();
             connection_init = 0;
             connected = 0;
         }

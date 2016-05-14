@@ -89,6 +89,10 @@ namespace AudioStreaming
 
         public bool IsWaveformatEqual(Mp3Frame frame)
         {
+            //TODO : fix function. somehow it doesn't work 100% ...
+            //hence return false so it always re-inits backend
+            return false;
+
             Mp3WaveFormat new_mp3Format = new Mp3WaveFormat(frame.SampleRate, frame.ChannelMode == ChannelMode.Mono ? 1 : 2,
                         frame.FrameLength, frame.BitRate);
 

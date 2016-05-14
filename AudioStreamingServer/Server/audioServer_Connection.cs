@@ -380,6 +380,20 @@ namespace AudioStreaming
                             return 0;
                         }
                     }
+                    if (buffer[0] == Protocol.RECQ_PREV_SONG)
+                    {
+                        //client asked for previous song. nice-u
+                        //TODO : fix the delay here too...
+                        Debug.WriteLine("Server : Protocol.RECQ_PREV_SONG Detected!");
+
+                        if (!OpenPreviousFile())
+                        {
+                            Debug.WriteLine("Server Failure : OpenPreviousFile returned false!");
+                            closeServer();
+                            return 0;
+                        }
+
+                    }
                 }
                 else if (ret > 0)
                 {

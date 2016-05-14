@@ -15,6 +15,7 @@ namespace AudioStreaming.Client
         //---------------------------
         private bool eventRegistered = false;
         private bool recqNext = false;
+        private bool recqPrev = false;
 
         public Settings settings = new Settings();
 
@@ -128,6 +129,8 @@ namespace AudioStreaming.Client
 
         public void RequestPrev()
         {
+            recqPrev = true;
+            SendData(Protocol.RECQ_PREV_SONG, null);
             return;
         }
 
