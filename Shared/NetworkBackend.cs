@@ -63,7 +63,7 @@ namespace AudioStreaming
         /// <summary>
         /// Check if we are running threaded, and if so, kill it using the variable
         /// </summary>
-        public void KillThread()
+        protected void KillThread()
         {
             if (ThreadAlive == true)
             {

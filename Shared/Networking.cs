@@ -76,6 +76,7 @@ namespace AudioStreaming
 
                 //init temp variable and set it to 0.
                 byte[] bpacket = {0,0,0,0,0};
+
                 int size = 0;
                 try
                 {
@@ -347,13 +348,13 @@ namespace AudioStreaming
 
         static public int DataAvailable(Socket clientSocket)
         {
-            if (clientSocket == null)
+            if (clientSocket == null || !CheckConnection(clientSocket) )
                 return Error.GEN_NET_FAIL;
-            /*if (clientSocket.Available > 0)
+            if (clientSocket.Available >= 10)
             {
                 Debug.WriteLine(String.Format("Data Available for reading : {0}",clientSocket.Available));
-            }*/
-            return 0;
+            }
+            return clientSocket.Available; // return 0;
         }
     }
 }

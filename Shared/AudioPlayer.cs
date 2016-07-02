@@ -2,6 +2,7 @@
 using NAudio.Wave;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading;
 
 namespace AudioStreaming
 {
@@ -12,6 +13,9 @@ namespace AudioStreaming
         private NAudio.Wave.DirectSoundOut waveOut = null;
         private AcmMp3FrameDecompressor decompressor = null;
         protected NAudio.Wave.VolumeWaveProvider16 volumeHandler = null;
+
+            //the handler for the thread monitor
+        public readonly object thread_monitor = new object();
 
         /// <summary>
         /// Get or Set the Volume of the player. 1 = 100% , 0 = 0%
@@ -195,7 +199,7 @@ namespace AudioStreaming
         {
             TimeSpan sleepTime = TimeSpan.FromSeconds(0.01);
             //prevent devide by 0
-            if (out_buffer.BufferDuration.TotalSeconds > 0)
+            if (out_buffer != null && out_buffer.BufferDuration.TotalSeconds >= 1)
             {
                 double devider = 5;
                 for (double i = out_buffer.BufferedDuration.TotalSeconds; i < 3 && i > 0; i--)
@@ -210,12 +214,17 @@ namespace AudioStreaming
                 sleepTime = TimeSpan.FromSeconds(out_buffer.BufferedDuration.TotalSeconds / (1 * devider));
             }
 
-            System.Threading.Thread.Sleep(sleepTime);
+            //we moved away from Thread.Sleep because it couldn't be interrupted for commands or interraction. 
+            //this makes the thread sleep but its possible to get it back in action by a external pulse.
+            lock (thread_monitor)
+            {
+                Monitor.Wait(thread_monitor, sleepTime);
+            }
 
-            BufferLenght = out_buffer.BufferedDuration.TotalSeconds;
+            BufferLenght = out_buffer==null?0:out_buffer.BufferedDuration.TotalSeconds;
 
             //return bufferlenght in seconds, this is good if we wanna catch how much data is left for like when we wanna reinit or close after current song
-            return Convert.ToDouble(out_buffer.BufferedDuration.TotalSeconds);
+            return Convert.ToDouble(out_buffer == null ? 0 : out_buffer.BufferedDuration.TotalSeconds);
         }
 
     }

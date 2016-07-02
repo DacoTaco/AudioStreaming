@@ -110,6 +110,16 @@ namespace AudioStreaming.Client
             oThread.Start();
             return;
         }
+        public void StopConnection()
+        {
+            //send kill command.
+            KillThread();
+            lock (audioPlayer.thread_monitor)
+            {
+                //interrupt player so it stops everything its doing
+                Monitor.Pulse(audioPlayer.thread_monitor);
+            }
+        }
 
         public void SaveSettings()
         {
@@ -124,6 +134,12 @@ namespace AudioStreaming.Client
         {
             recqNext = true;
             SendData(Protocol.RECQ_NEXT_SONG, null);
+            lock (audioPlayer.thread_monitor)
+            {
+                //interrupt player to send the next command
+                Monitor.Pulse(audioPlayer.thread_monitor);
+            }
+            Debug.WriteLine("Client : RECQ_NEXT_SONG send!");
             return;
         }
 
@@ -131,6 +147,12 @@ namespace AudioStreaming.Client
         {
             recqPrev = true;
             SendData(Protocol.RECQ_PREV_SONG, null);
+            lock (audioPlayer.thread_monitor)
+            {
+                //interrupt player to send the prev command
+                Monitor.Pulse(audioPlayer.thread_monitor);
+            }
+            Debug.WriteLine("Client : RECQ_PREV_SONG send!");
             return;
         }
 

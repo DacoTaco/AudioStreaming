@@ -63,12 +63,12 @@ namespace AudioStreaming.Client
         }
         private void Disconnect(object sender, RoutedEventArgs e)
         {
-            Client.KillThread();
+            Client.StopConnection();
         }
 
         private void CloseApp(object sender, EventArgs e)
         {
-            Client.KillThread();
+            Client.StopConnection();
         }
 
         private void ChangeUISize(object sender, RoutedEventArgs e)

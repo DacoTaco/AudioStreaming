@@ -74,14 +74,18 @@ namespace AudioStreaming.Server
 
         private void GetMp3Path(object sender, RoutedEventArgs e)
         {
+
             // Create OpenFileDialog 
-            VistaFolderBrowserDialog dialog = new VistaFolderBrowserDialog();
-            dialog.Description = "Please select a folder.";
-            dialog.UseDescriptionForTitle = true; // This applies to the Vista style dialog only, not the old dialog.
-            dialog.ShowNewFolderButton = true;
+
+            var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            /*VistaFolderBrowserDialog dialog = new VistaFolderBrowserDialog();*/
+
+            dialog.Description = "Please select a folder";
+            //dialog.UseDescriptionForTitle = true; // This applies to the Vista style dialog only, not the old dialog.
+            dialog.ShowNewFolderButton = false;
             dialog.SelectedPath = txtMp3Path.Text;
 
-            if ((bool)dialog.ShowDialog() == true)
+            if ((dialog.ShowDialog()).ToString() == "OK")
             {
                 if (dialog.SelectedPath != null && dialog.SelectedPath.Length > 0)
                     txtMp3Path.Text = dialog.SelectedPath;
@@ -91,7 +95,7 @@ namespace AudioStreaming.Server
 
         private void CloseApp(object sender, EventArgs e)
         {
-            Server.KillThread();
+            Server.StopServer();
         }
 
         /// <summary>

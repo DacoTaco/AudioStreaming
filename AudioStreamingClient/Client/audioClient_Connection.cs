@@ -121,6 +121,7 @@ namespace AudioStreaming.Client
                                     break;
                                 //we received data to play!
                                 case Protocol.REINIT_BACKEND:
+                                    Debug.WriteLine("REINIT Received!");
                                     //we received command to reinit the backend
                                     //wait for all data to be played
                                     if (!recqNext && !recqPrev)
@@ -186,8 +187,6 @@ namespace AudioStreaming.Client
                                             i++;
                                         } while (i <= recv_multi);
 
-
-                                        audioPlayer.WaitForMoreData();
                                     }
                                     catch (Exception ex)
                                     {
@@ -209,6 +208,7 @@ namespace AudioStreaming.Client
                                     break;
                             }
                         }
+                        audioPlayer.WaitForMoreData();
                         //network error
                         if (size < 0)
                         {

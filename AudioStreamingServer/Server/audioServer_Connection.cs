@@ -41,6 +41,8 @@ namespace AudioStreaming
 
                 closeServer();
             }
+            if (playedListIndexes.Count > 0)
+                playedListIndexes.Clear();
         }
         public void StartServer(int indexDevice)
         {
@@ -210,7 +212,7 @@ namespace AudioStreaming
                     if (mp3Mode)
                     {
 
-                        DataAvailable();
+                        //DataAvailable();
                         if (HandleMp3Mode() < 1)
                             break;                        
                     }
@@ -357,61 +359,69 @@ namespace AudioStreaming
                 return 0;
 
             byte[] buffer = null;
+            int Dat = 0;
             do
             {
-                ret = GetData(ref buffer);
-                if (ret > 0 && ( buffer[0] == Protocol.SEND_DATA_ACK || buffer[0] == Protocol.SEND_MULTI_ACK) )
+                Dat = DataAvailable();
+                if (Dat > 0)
                 {
-                    //continue;
-                    break;
-                }
-                else if (ret > 0 && (buffer[0] == Protocol.RECQ_NEXT_SONG || buffer[0] == Protocol.RECQ_PREV_SONG))
-                {
-                    if (buffer[0] == Protocol.RECQ_NEXT_SONG)
+                    ret = GetData(ref buffer);
+                    if (Dat > 15)
+                        Debug.WriteLine(String.Format(" Command : {0} - {1} {2}", buffer[0], buffer.Length, Environment.NewLine));
+                    if (ret > 0 && (buffer[0] == Protocol.SEND_DATA_ACK || buffer[0] == Protocol.SEND_MULTI_ACK))
                     {
-                        //client asked for new song. bugger.
-                        //TODO : fix the delay. for some reason it takes a few seconds before both server AND client realise what happened :/
-                        Debug.WriteLine("Server : Protocol.RECQ_NEXT_SONG Detected!");
-
-                        if (!OpenNextFile())
-                        {
-                            Debug.WriteLine("Server Failure : OpenNextFile returned false!");
-                            closeServer();
-                            return 0;
-                        }
+                        continue;
+                        //break;
                     }
-                    if (buffer[0] == Protocol.RECQ_PREV_SONG)
+                    else if (ret > 0 && (buffer[0] == Protocol.RECQ_NEXT_SONG || buffer[0] == Protocol.RECQ_PREV_SONG))
                     {
-                        //client asked for previous song. nice-u
-                        //TODO : fix the delay here too...
-                        Debug.WriteLine("Server : Protocol.RECQ_PREV_SONG Detected!");
-
-                        if (!OpenPreviousFile())
+                        if (buffer[0] == Protocol.RECQ_NEXT_SONG)
                         {
-                            Debug.WriteLine("Server Failure : OpenPreviousFile returned false!");
-                            closeServer();
-                            return 0;
-                        }
+                            //client asked for new song. bugger.
+                            //TODO : fix the delay. for some reason it takes a few seconds before both server AND client realise what happened :/
+                            Debug.WriteLine("Server : Protocol.RECQ_NEXT_SONG Detected!");
 
+                            if (!OpenNextFile())
+                            {
+                                Debug.WriteLine("Server Failure : OpenNextFile returned false!");
+                                closeServer();
+                                return 0;
+                            }
+                        }
+                        if (buffer[0] == Protocol.RECQ_PREV_SONG)
+                        {
+                            //client asked for previous song. nice-u
+                            //TODO : fix the delay here too...
+                            Debug.WriteLine("Server : Protocol.RECQ_PREV_SONG Detected!");
+
+                            if (!OpenPreviousFile())
+                            {
+                                Debug.WriteLine("Server Failure : OpenPreviousFile returned false!");
+                                closeServer();
+                                return 0;
+                            }
+
+                        }
+                        break;
                     }
-                }
-                else if (ret > 0)
-                {
-                    //wrong response. kill connection
-                    closeServer();
-                    return 0;
-                }
-                if (ret < 0)
-                {
-                    error = Error.RESPONSE_FAIL;
-                    break;
+                    else if (ret > 0)
+                    {
+                        //wrong response. kill connection
+                        closeServer();
+                        return 0;
+                    }
+                    if (ret < 0)
+                    {
+                        error = Error.RESPONSE_FAIL;
+                        break;
+                    }
                 }
                 else
                 {
                     //no response from client yet, so we wait before we send more data
-                    System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(10));
+                    System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(60));
                 }
-            } while (true);
+            } while (Dat > 0);//(true);
             return 1;
         }
 
