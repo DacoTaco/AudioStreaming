@@ -107,6 +107,7 @@ namespace AudioStreaming.Client
             Thread oThread = new Thread(new ThreadStart(this.ConnectToServer));
             ThreadAlive = false;
             killThread = false;
+            oThread.Name = "Client Connecting Thread";
             oThread.Start();
             return;
         }
@@ -132,27 +133,13 @@ namespace AudioStreaming.Client
 
         public void RequestNext()
         {
-            recqNext = true;
-            SendData(Protocol.RECQ_NEXT_SONG, null);
-            lock (audioPlayer.thread_monitor)
-            {
-                //interrupt player to send the next command
-                Monitor.Pulse(audioPlayer.thread_monitor);
-            }
-            Debug.WriteLine("Client : RECQ_NEXT_SONG send!");
+            NextCommandToSend(Protocol.RECQ_NEXT_SONG, 0);
             return;
         }
 
         public void RequestPrev()
         {
-            recqPrev = true;
-            SendData(Protocol.RECQ_PREV_SONG, null);
-            lock (audioPlayer.thread_monitor)
-            {
-                //interrupt player to send the prev command
-                Monitor.Pulse(audioPlayer.thread_monitor);
-            }
-            Debug.WriteLine("Client : RECQ_PREV_SONG send!");
+            NextCommandToSend(Protocol.RECQ_PREV_SONG, 0);
             return;
         }
 

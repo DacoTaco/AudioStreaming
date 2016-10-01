@@ -102,9 +102,13 @@ namespace AudioStreaming
                 return Error.EXCEP_FAIL;
             }
         }
+        protected int SendData(byte command, byte subCommand, byte[] buffer)
+        {
+            return Networking.SendData(command,subCommand, buffer, clientSocket);
+        }
         protected int SendData(byte command, byte[] buffer)
         {
-            return Networking.SendData(command, buffer, clientSocket);
+            return Networking.SendData(command,0, buffer, clientSocket);
         }
         protected int SendData(byte[] buffer)
         {
@@ -137,6 +141,7 @@ namespace AudioStreaming
                     }
                 }
                 clientSocket.Dispose();
+                clientSocket = null;
             }
             connection_init = 0;
             connected = 0;

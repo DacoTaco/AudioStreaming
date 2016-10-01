@@ -220,6 +220,9 @@ namespace AudioStreaming
 
             int ret = SendData(command, data);
 
+            if(command == Protocol.REINIT_BACKEND)
+                Debug.WriteLine("REINIT_BACKEND SEND!");
+
             if (ret < 0)
                 return false;
             else

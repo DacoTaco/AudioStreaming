@@ -9,7 +9,13 @@ namespace AudioStreaming
     {
         //the protocol names/value's
         //-------------------------------------
+        public const byte CommandHeaderSize = 6;
 
+
+
+
+        //Command & Subcommands
+        //--------------------------
         //init. REQ is for the client, response is the data the server gives to client.
         public const byte INIT_REQ = 0x10;
         public const byte INIT_REQ_RESPONSE = 0x11;
@@ -17,21 +23,29 @@ namespace AudioStreaming
         public const byte INIT_ACK = 0x12;
 
         //sending data to the other
-        public const byte SEND_DATA = 0x20;
-        public const byte SEND_DATA_ACK = 0x21;
+        public const byte RECQ_SEND_DATA = 0x20;
+        public const byte SEND_DATA = 0x21;
+        public const byte SEND_DATA_ACK = 0x22;
 
-        public const byte SEND_MULTI_DATA = 0x22;
-        public const byte SEND_MULTI_ACK = 0x23;
+        public const byte RECQ_SEND_MULTI_DATA = 0x23;
+        public const byte SEND_MULTI_DATA = 0x24;
+        public const byte SEND_MULTI_ACK = 0x25;
+        public const byte SEND_MULTI_EOF_SUBCOM = 0x2a;
 
-        //asking client to reinit the backend because format changed
-        //this is always followed by 1 frame. no more
-        public const byte REINIT_BACKEND = 0x30;
-        public const byte REINIT_DONE = 0x31;
+        //reinit commands. server telling client to reinit or client asking server for the first frame(so it can setup)
+        public const byte RECQ_REINIT = 0x30;
+        public const byte RECQ_REINIT_MP3 = 0x31;
+        public const byte REINIT_BACKEND = 0x32;
+        public const byte REINIT_DONE = 0x33;
 
-        public const byte NEW_TITLE = 0x40;
+        public const byte RECQ_TITLE = 0x40;
+        public const byte NEW_TITLE = 0x41;
 
         public const byte RECQ_NEXT_SONG = 0x50;
         public const byte RECQ_PREV_SONG = 0x51;
+
+        public const byte NOP = 0x98;
+        public const byte KILL_CONNECTION = 0x99;
 
     }
     static public class Error
@@ -61,6 +75,8 @@ namespace AudioStreaming
     {
 
         //receive data
+        static private byte HeaderSize = Protocol.CommandHeaderSize;
+
         static public int GetData(ref byte[] buffer, Socket socket)
         {
             if (socket == null)
@@ -75,12 +91,21 @@ namespace AudioStreaming
                 //we could use peek, but it was discouraged online :/
 
                 //init temp variable and set it to 0.
-                byte[] bpacket = {0,0,0,0,0};
+                byte[] bpacket = { 0 };
+                Array.Resize<byte>(ref bpacket, HeaderSize);
+                Array.Clear(bpacket, 0, HeaderSize);
 
                 int size = 0;
                 try
                 {
-                    ret = socket.Receive(bpacket, 5, 0);
+                    if (socket.ReceiveTimeout == 0)
+                        socket.ReceiveTimeout = 400;
+                    ret = socket.Receive(bpacket, HeaderSize, 0);
+                }
+                catch (SocketException Se)
+                {
+                    if (Se.SocketErrorCode != SocketError.TimedOut)
+                        return -4;
                 }
                 catch
                 {
@@ -98,7 +123,7 @@ namespace AudioStreaming
                 }
 
                 //reconstruct size from the packet
-                size = (bpacket[1] << 24) + (bpacket[2] << 16) + (bpacket[3] << 8) + bpacket[4];
+                size = (bpacket[2] << 24) + (bpacket[3] << 16) + (bpacket[4] << 8) + bpacket[5];
                 
                 if (size == 0)
                 {
@@ -116,11 +141,11 @@ namespace AudioStreaming
                         else
                             Array.Resize<byte>(ref buffer, size);
 
-                        Array.Copy(bpacket, buffer, 5);
+                        Array.Copy(bpacket, buffer, HeaderSize);
 
-                        if (size > 5)
+                        if (size > HeaderSize)
                         {
-                            ret = 5;
+                            ret = HeaderSize;
                             //as long as the size isn't right, read the shit!
                             while (ret < size)
                             {
@@ -151,9 +176,14 @@ namespace AudioStreaming
         //send dataaaa!
         //basically this composes the packet the protocol wants
         //byte 0 : command
+        //byte 1 : subcommand
         //byte 1 - 4 : size
         //byte 5 - infinity : data
-        static public int SendData(byte Command,byte[] buffer, Socket socket)
+        static public int SendData(byte Command, byte[] buffer, Socket socket)
+        {
+            return SendData(Command, 0, buffer, socket);
+        }
+        static public int SendData(byte Command,byte subCommand,byte[] buffer, Socket socket)
         {
             if (socket == null)
                 throw new ArgumentNullException("SendDataCommand : argument is null");
@@ -163,23 +193,24 @@ namespace AudioStreaming
             if(buffer != null)
                 size = buffer.Length;
 
-            byte[] data = new byte[size + 5];
+            byte[] data = new byte[size + Protocol.CommandHeaderSize];
 
             data[0] = Command;
+            data[1] = subCommand;
             if (size > 0)
             {
-                data[1] = AudioStreaming.ByteConversion.ByteFromInt(size+5, 0);
-                data[2] = AudioStreaming.ByteConversion.ByteFromInt(size+5, 1);
-                data[3] = AudioStreaming.ByteConversion.ByteFromInt(size+5, 2);
-                data[4] = AudioStreaming.ByteConversion.ByteFromInt(size+5, 3);
-                Array.Copy(buffer, 0, data, 5, size);
+                data[2] = AudioStreaming.ByteConversion.ByteFromInt(size + Protocol.CommandHeaderSize, 0);
+                data[3] = AudioStreaming.ByteConversion.ByteFromInt(size + Protocol.CommandHeaderSize, 1);
+                data[4] = AudioStreaming.ByteConversion.ByteFromInt(size + Protocol.CommandHeaderSize, 2);
+                data[5] = AudioStreaming.ByteConversion.ByteFromInt(size + Protocol.CommandHeaderSize, 3);
+                Array.Copy(buffer, 0, data, HeaderSize, size);
             }
             else
             {
-                data[1] = 0;
                 data[2] = 0;
                 data[3] = 0;
-                data[4] = AudioStreaming.ByteConversion.ByteFromInt(5, 3);
+                data[4] = 0;
+                data[5] = AudioStreaming.ByteConversion.ByteFromInt(HeaderSize, 3);
             }
 
             //made this if to let it throw when it sends data it shouldn't. so far, no exception... :/
@@ -190,8 +221,8 @@ namespace AudioStreaming
             int ret = SendData(data, socket);
 
             //correct the returned size
-            if (ret >= 5)
-                ret -= 5;
+            if (ret >= HeaderSize)
+                ret -= HeaderSize;
             return ret;
         }
 

@@ -17,6 +17,8 @@ namespace AudioStreaming
             //the handler for the thread monitor
         public readonly object thread_monitor = new object();
 
+        public bool bFileEnding = false;
+
         /// <summary>
         /// Get or Set the Volume of the player. 1 = 100% , 0 = 0%
         /// </summary>
@@ -56,6 +58,12 @@ namespace AudioStreaming
             return true;
         }
 
+        public bool IsPlaying()
+        {
+            if (waveOut == null)
+                return false;
+            return (waveOut.PlaybackState == PlaybackState.Playing);
+        }
         //The StopPlaying/Recording functions which will call KillAll which kills both recording and playing streams.
         //public void StopPlaying(object sender, EventArgs e)
         public void StopPlaying()
@@ -131,6 +139,7 @@ namespace AudioStreaming
         {
             //first cleanup the the backend. the old MP3 info could be different
             StopPlaying();
+            bFileEnding = false;
             //setup the output stream, using the provider & mp3Frame
             waveOut = new NAudio.Wave.DirectSoundOut();
 
@@ -221,6 +230,13 @@ namespace AudioStreaming
                 Monitor.Wait(thread_monitor, sleepTime);
             }
 
+            BufferLenght = out_buffer==null?0:out_buffer.BufferedDuration.TotalSeconds;
+
+            //return bufferlenght in seconds, this is good if we wanna catch how much data is left for like when we wanna reinit or close after current song
+            return Convert.ToDouble(out_buffer == null ? 0 : out_buffer.BufferedDuration.TotalSeconds);
+        }
+        public double GetBufferLenght()
+        {
             BufferLenght = out_buffer==null?0:out_buffer.BufferedDuration.TotalSeconds;
 
             //return bufferlenght in seconds, this is good if we wanna catch how much data is left for like when we wanna reinit or close after current song

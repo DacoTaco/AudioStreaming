@@ -9,7 +9,7 @@ namespace AudioStreaming
         ///THIS IS FOR BOTH CLIENT AND SERVER
         public short _VERSION
         {
-            get { return 0x0002; }
+            get { return 0x0003; }
         }
 
         //variables
