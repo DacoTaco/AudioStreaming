@@ -43,8 +43,10 @@ namespace AudioStreaming.Server
             InitializeComponent();
 
             Server = new audioServer();
+
             grdMain.DataContext = Server;
             listDevices.DataContext = this;
+            txtMp3Path.DataContext = Server.settings;
             GetDevices();
 
             if (GetDevicesCount() > 0 && listDevices.SelectedIndex < 0)
@@ -52,7 +54,7 @@ namespace AudioStreaming.Server
                 listDevices.SelectedIndex = 0;
             }
 
-            Server.mp3Path = System.IO.Directory.GetCurrentDirectory(); //@"H:\stuff\MP3's\"  
+            //Server.mp3Path = System.IO.Directory.GetCurrentDirectory(); //@"H:\stuff\MP3's\"  
             debug = new DebugListener(txtDebug);
             Debug.Listeners.Add(debug);  
           

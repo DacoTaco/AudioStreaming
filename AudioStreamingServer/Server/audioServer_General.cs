@@ -5,7 +5,7 @@ using System.IO;
 using System.Windows.Controls;
 using TagLib;
 
-namespace AudioStreaming
+namespace AudioStreaming.Server
 {
     public partial class audioServer : NetworkBackend
     {
@@ -13,20 +13,11 @@ namespace AudioStreaming
         //variables
         //----------------------
         private int deviceIndex = 0;
-
-        private string _mp3Path;
+        public Settings settings = new Settings();
 
         public string mp3Path
         {
-            get { return _mp3Path; }
-            set 
-            {
-                if (_mp3Path != value)
-                {
-                    _mp3Path = value;
-                    OnPropertyChanged("mp3Path");
-                }
-            }
+            get { return settings.Directory; }
         }
 
         private string songName;
@@ -57,6 +48,7 @@ namespace AudioStreaming
         public audioServer()
         {
             audioPlayer = new AudioRecorder();
+            settings.LoadSettings();
             return;
         }
 

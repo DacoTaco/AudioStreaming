@@ -59,7 +59,7 @@ namespace AudioStreaming.Client
         {
             //isChecked is a 3 state bool. you can't pass them on to a regular bool.
             //hence we check if its true or not. basically combining 2 states into false
-            Client.StartConnection(txbHostname.Text, (cbCompress.IsChecked == true) ? true : false, (cbMp3Mode.IsChecked == true) ? true : false);
+            Client.StartConnection();//txbHostname.Text, (cbCompress.IsChecked == true) ? true : false, (cbMp3Mode.IsChecked == true) ? true : false);
         }
         private void Disconnect(object sender, RoutedEventArgs e)
         {

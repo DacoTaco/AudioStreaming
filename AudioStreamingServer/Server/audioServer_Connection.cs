@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Windows.Controls;
 using System.Threading;
 
-namespace AudioStreaming
+namespace AudioStreaming.Server
 {
     public partial class audioServer : NetworkBackend
     {
@@ -132,7 +132,6 @@ namespace AudioStreaming
                             channels = frame.ChannelMode == NAudio.Wave.ChannelMode.Mono ? 1 : 2;
                             audioPlayer.RewindMP3();
                         }
-#if !API_REBUILD
                         else
                         {
 
@@ -141,28 +140,21 @@ namespace AudioStreaming
                             channels = audioPlayer.GetWaveChannels();
 
                         }
-#endif
 
                         //generate response. which will contain the response (DEAD) and the wave format followed by an ACK that we will compress or not
-#if API_REBUILD
-                        Byte[] sendBytes = new byte[5];
-#else
+
                         Byte[] sendBytes = new byte[9];
-#endif
                         sendBytes[0] = 0xDE;
                         sendBytes[1] = 0xAD;
                         sendBytes[2] = ByteConversion.ByteFromInt(audioPlayer._VERSION, 2);
                         sendBytes[3] = ByteConversion.ByteFromInt(audioPlayer._VERSION, 3);
+
                         //and this is why we need the samplerate and channels
-#if API_REBUILD
-                        sendBytes[4] = (byte)(compressed ? 0x01 : 0x00);
-#else
                         sendBytes[4] = ByteConversion.ByteFromInt(samples, 2);
                         sendBytes[5] = ByteConversion.ByteFromInt(samples, 3);
                         sendBytes[6] = ByteConversion.ByteFromInt(channels, 3);
                         sendBytes[7] = (byte)(compressed ? 0x01 : 0x00);
                         sendBytes[8] = (byte)(mp3Mode ? 0x01 : 0x00);
-#endif
 
 
 
@@ -207,10 +199,10 @@ namespace AudioStreaming
                 //if there is no error or the connection is init we will break for now
                 //we can do this cause mainly the sending of the audio is dealt by the AudioBackend & SendData
                 //no use keeping the thread alive and doing nothing...
-                if (mp3Mode == false && (error != Error.NONE || connection_init > 0))
+                /*if (mp3Mode == false && (error != Error.NONE || connection_init > 0))
                 {
                     return;
-                }
+                }*/
 
                 //while the connection is there, try to init and see if more is needed to be done
                 while ((killThread == false) && (CheckConnection()) )
@@ -226,11 +218,13 @@ namespace AudioStreaming
                             {
                                 case Protocol.RECQ_PREV_SONG:
                                     Debug.WriteLine("Server : Protocol.RECQ_PREV_SONG Detected!");
-                                    OpenPreviousFile();
+                                    if(mp3Mode)
+                                        OpenPreviousFile();
                                     goto case Protocol.RECQ_TITLE;
                                 case Protocol.RECQ_NEXT_SONG:
                                     Debug.WriteLine("Server : Protocol.RECQ_NEXT_SONG Detected!");
-                                    OpenMp3File();
+                                    if (mp3Mode)
+                                        OpenMp3File();
                                     goto case Protocol.RECQ_TITLE;
                                 case Protocol.RECQ_TITLE:
                                     SendNewTitle();
@@ -242,6 +236,8 @@ namespace AudioStreaming
 
                                 case Protocol.RECQ_SEND_MULTI_DATA:
                                 case Protocol.RECQ_REINIT_MP3:
+                                    if (!mp3Mode)
+                                        break;
 
                                     byte command = bytesFrom[0];
                                     byte subCommand = 0;
@@ -335,7 +331,9 @@ namespace AudioStreaming
                                     break;
 
                                 case Protocol.KILL_CONNECTION:
-                                case Protocol.SEND_DATA:
+                                case Protocol.RECQ_SEND_DATA:
+                                    data_send = 1;
+                                    break;
                                 default:
                                     string hex = "0x" + BitConverter.ToString(bytesFrom);
                                     hex = hex.Replace("-", " 0x");
@@ -372,8 +370,15 @@ namespace AudioStreaming
 
         private void SendNewTitle()
         {
-            byte[] data = compressed ? Compressor.Compress(System.Text.Encoding.UTF8.GetBytes(SongName)) : System.Text.Encoding.UTF8.GetBytes(SongName);
-
+            byte[] data;
+            string Name = "";
+            if (mp3Mode)
+                Name = SongName;
+            else
+            {
+                Name = String.Format("Audio Playback from : {0}", NAudio.Wave.WaveIn.GetCapabilities(deviceIndex).ProductName);
+            }
+            data = compressed ? Compressor.Compress(System.Text.Encoding.UTF8.GetBytes(Name)) : System.Text.Encoding.UTF8.GetBytes(Name);
             SendData(Protocol.NEW_TITLE, data);
         }
         
@@ -382,10 +387,9 @@ namespace AudioStreaming
         private void SendAudioData(object sender, NAudio.Wave.WaveInEventArgs e)
         {
             //the event args has a buffer with said data. its raw pcm, but over lan it'll do :D
-            if (serverStarted > 0 && connection_init > 0 && data_send == 0)
+            if (serverStarted > 0 && connection_init > 0 && data_send == 1)
             {
                 //currently the ACK is disabled because with the PCM data being so big it causes lag on audio
-                //data_send = 1;
                 byte[] data = null;
 
                 if (compressed)
@@ -398,24 +402,10 @@ namespace AudioStreaming
                 }
                 int ret = SendData(Protocol.SEND_DATA, data);
                 //Debug.WriteLine("Compressed size: {0:F2}%",100 * ((double)data.Length / (double)e.Buffer.Length));
+                data_send = 0;
 
                 if (ret != data.Length)
                     closeServer();
-            }
-            else if (data_send == 1)
-            {
-                //waiting for the SEND_DATA_ACK
-                byte[] buffer = null;
-                int ret = GetData(ref buffer);
-                if (ret > 0 && ( buffer[0] == Protocol.SEND_DATA_ACK || buffer[0] == Protocol.SEND_MULTI_ACK ) )
-                {
-                    data_send = 0;
-                }
-                else
-                {
-                    //wrong response. kill connection
-                    closeServer();
-                }
             }
 
             return;

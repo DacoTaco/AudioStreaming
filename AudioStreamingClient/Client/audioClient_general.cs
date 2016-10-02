@@ -14,11 +14,6 @@ namespace AudioStreaming.Client
         //       VARIABLES
         //---------------------------
         private bool eventRegistered = false;
-#if !API_REBUILD
-        private bool recqNext = false;
-        private bool recqPrev = false;
-#endif
-
         public Settings settings = new Settings();
 
         //the audioPlayer using our AudioBackend. this will handle the data and play it
@@ -97,15 +92,15 @@ namespace AudioStreaming.Client
                 UnregisterPropertyChanged();
         }
 
-        public void StartConnection(string hostname, bool compressData, bool _mp3Mode)
+        public void StartConnection()
         {
             //we dont want to have the client run twice
             if (ThreadAlive)
                 return;
 
-            //Hostname = hostname;
-            compressed = compressData;
-            mp3Mode = _mp3Mode;
+            compressed = settings.CompressData;
+            mp3Mode = settings.Mp3Mode;
+
             Thread oThread = new Thread(new ThreadStart(this.ConnectToServer));
             ThreadAlive = false;
             killThread = false;
@@ -113,6 +108,7 @@ namespace AudioStreaming.Client
             oThread.Start();
             return;
         }
+
         public void StopConnection()
         {
             //send kill command.

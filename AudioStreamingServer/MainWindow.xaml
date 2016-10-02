@@ -13,7 +13,7 @@
         </ListView>
         <Button x:Name="btStart" Content="Start" HorizontalAlignment="Left" Margin="303,94,0,0" VerticalAlignment="Top" Width="75" Click="btStart_Click" IsEnabled="{Binding Path=enableControls}" />
         <Button x:Name="btStop" Content="Stop" HorizontalAlignment="Left" Margin="476,94,0,0" VerticalAlignment="Top" Width="75" Click="btStop_Click" IsEnabled="{Binding Path=ThreadAlive}" RenderTransformOrigin="1.36,0.455"/>
-        <TextBox x:Name="txtMp3Path" HorizontalAlignment="Left" Height="23" Margin="303,42,0,0" Text="{Binding Path=mp3Path,UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="174" IsEnabled="{Binding Path=enableControls}"/>
+        <TextBox x:Name="txtMp3Path" HorizontalAlignment="Left" Height="23" Margin="303,42,0,0" Text="{Binding Path=Directory,UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="174" IsEnabled="{Binding Path=enableControls}"/>
         <Button x:Name="btBrowsePath" Content="Browse.." HorizontalAlignment="Left" VerticalAlignment="Top" Width="59" Margin="492,42,0,0" Click="GetMp3Path" IsEnabled="{Binding Path=enableControls}"/>
         <TextBox x:Name="txtDebug" HorizontalAlignment="Left" Height="170" Margin="303,131,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="248" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto"/>
     </Grid>

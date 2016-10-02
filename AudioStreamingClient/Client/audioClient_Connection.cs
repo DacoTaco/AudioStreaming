@@ -11,13 +11,12 @@ namespace AudioStreaming.Client
         //---------------------------
         //       VARIABLES
         //---------------------------
-#if API_REBUILD
         private byte commandToSend = 0x00;
         private byte recquestCommandToSend = 0x00;
         private byte subCommandToSend = 0x00;
         private byte recquestSubCommandToSend = 0x00;
         private double MAX_BUFFER_LENGHT = 2.5;
-#endif
+
         //---------------------------
         //       FUCNTIONS
         //---------------------------
@@ -63,9 +62,6 @@ namespace AudioStreaming.Client
                     connected = 1;
                     byte[] buffer = null;
                     int size = 0;
-#if !API_REBUILD
-                    byte recv_multi = 0;
-#endif
 
 
                     if (connection_init == 0)
@@ -82,11 +78,7 @@ namespace AudioStreaming.Client
 
                         //get the response & validate it
                         size = GetData(ref buffer);
-#if API_REBUILD
-                        int expected_size = 0x0b;
-#else
-                        int expected_size = 0x0e
-#endif
+                        int expected_size = 0x0f;
 
                         if (size < expected_size || buffer[0] != Protocol.INIT_REQ_RESPONSE
                             || ByteConversion.ByteArrayToUInt(buffer, Protocol.CommandHeaderSize) == 0xDEADFFFF || (buffer[8] << 8) + buffer[9] != audioPlayer._VERSION)
@@ -95,34 +87,32 @@ namespace AudioStreaming.Client
                             break;
                         }
 
-#if !API_REBUILD
                         //recompile the information from the packet and use it
-                        int samplerate = (buffer[9] << 8) + buffer[10];
-                        int channels = buffer[11];
+                        int samplerate = (buffer[10] << 8) + buffer[11];
+                        int channels = buffer[12];
                         compressed = (buffer[buffer.Length - 2] != 0) ? true : false;
                         mp3Mode = (buffer[buffer.Length - 1] != 0) ? true : false;
-#endif
+
                         //send that we were able to init.
                         size = SendData(Protocol.INIT_ACK, null);
                         if (size < 0)
                             error = Error.GEN_NET_FAIL;
 
                         //connection is init!
-#if !API_REBUILD
+
                         //if we aren't running in mp3mode then lets start the audiobackend already
                         //in mp3Mode we will wait for the first frame
                         if (mp3Mode == false)
                         {
                             audioPlayer.SetWaveFormat(samplerate, channels);
                             audioPlayer.StartPlaying();
+                            recquestCommandToSend = Protocol.RECQ_TITLE;
                         }
-#endif
                         connection_init = 1;
                         Debug.WriteLine("Connection Init!");
                     }
                     else
                     {
-#if API_REBUILD
                         //if a certain command is requested , we will send it first. fuck the rest
                         if (recquestCommandToSend != 0x00)
                         {
@@ -143,7 +133,12 @@ namespace AudioStreaming.Client
                             if (audioPlayer.WaitForMoreData() < MAX_BUFFER_LENGHT)
                             {
                                 if (recquestCommandToSend == 0x00)
-                                    commandToSend = Protocol.RECQ_SEND_MULTI_DATA;
+                                {
+                                    if (mp3Mode)
+                                        commandToSend = Protocol.RECQ_SEND_MULTI_DATA;
+                                    else
+                                        commandToSend = Protocol.RECQ_SEND_DATA;
+                                }
                                 else
                                 {
                                     commandToSend = recquestCommandToSend;
@@ -155,12 +150,13 @@ namespace AudioStreaming.Client
                             else
                                 commandToSend = 0x00;
                         }
-                        else if(!audioPlayer.bFileEnding)
+                        else if (mp3Mode && !audioPlayer.bFileEnding)
                         {
                             commandToSend = Protocol.RECQ_SEND_MULTI_DATA;
                         }
+                        else if (!mp3Mode)
+                            commandToSend = Protocol.RECQ_SEND_DATA;
 
-                        
 
                         if (commandToSend != 0x00)
                         {
@@ -183,11 +179,16 @@ namespace AudioStreaming.Client
 
                                 case Protocol.RECQ_NEXT_SONG:
                                 case Protocol.RECQ_PREV_SONG:
-                                    audioPlayer.StopPlaying();
-                                    goto case Protocol.NOP;
+                                    if (mp3Mode)
+                                    {
+                                        audioPlayer.StopPlaying();
+                                        goto case Protocol.NOP;
+                                    }
+                                    else
+                                        break;
                                 case Protocol.RECQ_SEND_MULTI_DATA: //request data to play!                            
                                 case Protocol.RECQ_TITLE: //request the title!
-                                case Protocol.RECQ_SEND_DATA:
+                                case Protocol.RECQ_SEND_DATA: //request data!
                                 case Protocol.KILL_CONNECTION:
                                 case Protocol.NOP:
                                     SendData(commandToSend, null);
@@ -204,7 +205,10 @@ namespace AudioStreaming.Client
                                 case Protocol.RECQ_PREV_SONG: //the response we get from these 3 is the same, the new title. meaning we need to reinit y0
                                 case Protocol.RECQ_NEXT_SONG:
                                 case Protocol.RECQ_TITLE:
-                                    commandToSend = Protocol.RECQ_REINIT_MP3;
+                                    if (mp3Mode)
+                                        commandToSend = Protocol.RECQ_REINIT_MP3;
+                                    else
+                                        commandToSend = 0x00;
                                     break;
                                 case Protocol.RECQ_REINIT_MP3: //backend is init, time to get mp3 data!
                                     commandToSend = Protocol.RECQ_SEND_MULTI_DATA;
@@ -212,7 +216,12 @@ namespace AudioStreaming.Client
                                 case Protocol.RECQ_SEND_MULTI_DATA:
                                 default:
                                     if (audioPlayer.GetBufferLenght() < MAX_BUFFER_LENGHT) // if we dont have enough data, we'll request some more :')
-                                        commandToSend = Protocol.RECQ_SEND_MULTI_DATA;
+                                    {
+                                        if (mp3Mode)
+                                            commandToSend = Protocol.RECQ_SEND_MULTI_DATA;
+                                        else
+                                            commandToSend = Protocol.RECQ_SEND_DATA;
+                                    }
                                     else
                                         commandToSend = 0x00;
                                     break;
@@ -228,126 +237,6 @@ namespace AudioStreaming.Client
                                 commandToSend = Protocol.RECQ_NEXT_SONG;
                             }
                         }
-#else
-                        size = GetData(ref buffer);
-                        if (size > 0)
-                        {
-                            if (size - Protocol.CommandHeaderSize <= 0)
-                                continue;
-
-                            size -= Protocol.CommandHeaderSize;
-                            //we received data from the server! strip header and pass it on to the bufferedProvider!
-                            byte[] data = new byte[size];
-                            Array.Copy(buffer, Protocol.CommandHeaderSize, data, 0, size);
-
-                            //decompress data if needed
-                            if (compressed)
-                                data = Compressor.Decompress(data);
-
-                            //we have data to process!
-                            switch (buffer[0])
-                            {
-                                //we received the new title of the song playing
-                                case Protocol.NEW_TITLE:
-                                    SongName = System.Text.Encoding.UTF8.GetString(data);
-                                    Debug.WriteLine(String.Format("new title : {0}", SongName));
-                                    break;
-                                //we received data to play!
-                                case Protocol.REINIT_BACKEND:
-                                    Debug.WriteLine("REINIT Received!");
-                                    //we received command to reinit the backend
-                                    //wait for all data to be played
-                                    if (!recqNext && !recqPrev)
-                                    {
-                                        while (audioPlayer.WaitForMoreData() > 0)
-                                        {
-                                        }
-                                    }
-                                    recqNext = false;
-                                    recqPrev = false;
-                                    //stop player, and then add the next frame. this will reinit the player
-                                    audioPlayer.StopPlaying();
-                                    recv_multi = data[0];
-                                    goto case Protocol.SEND_DATA;
-
-                                case Protocol.SEND_MULTI_DATA:
-                                    recv_multi = data[0];
-                                    goto case Protocol.SEND_DATA;
-
-                                case Protocol.SEND_DATA:
-                                    try
-                                    {
-                                        int i = 1;
-                                        do
-                                        {
-                                            byte[] frame = new byte[1];
-                                            int frameSize = 0;
-                                            int index = 0;
-
-                                            if (recv_multi <= 0)
-                                            {
-                                                frame = data;
-                                            }
-                                            else
-                                            {
-                                                //retrieve index of current frame
-                                                byte[] _temp = new byte[2];
-
-                                                //the index is in the 1st & 2nd bytes of the frame's header of the packet
-                                                Array.Copy(data, (4 * i) - 3, _temp, 0, 2);
-                                                index = ByteConversion.ByteArrayToInt(_temp, 0);
-
-                                                //retrieve size of current frame, which is in the 3th & 4th bytes of the frame's header of the packet
-                                                Array.Copy(data, (4 * i) - 1, _temp, 0, 2);
-                                                frameSize = ByteConversion.ByteArrayToInt(_temp, 0);//data.Length - index;
-
-
-                                                Array.Resize(ref frame, frameSize);
-                                                Array.Copy(data, index, frame, 0, frameSize);
-                                                //continue;
-                                            }
-
-                                            //and add data...
-                                            if (mp3Mode)
-                                            {
-                                                audioPlayer.AddNextFrame(frame);
-                                            }
-                                            else
-                                            {
-                                                AddDataToBuffer(ref frame);
-                                            }
-
-                                            i++;
-                                        } while (i <= recv_multi);
-
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        throw;
-                                    }
-
-                                    //we passed the data to the wave backend. send the ACK that we received it fine and we can get more data
-                                    //NOTE : currently ACK is disabled deu to audio lag then. im guessing the PCM is to much and going to fast to send an ack in between
-                                    if (mp3Mode)
-                                    {
-                                        if (recv_multi <= 0)
-                                            SendData(Protocol.SEND_DATA_ACK, null);
-                                        else
-                                            SendData(Protocol.SEND_MULTI_ACK, null);
-                                    }
-                                    break;
-                                default:
-                                    //do nothing
-                                    break;
-                            }
-                        }
-                        audioPlayer.WaitForMoreData();
-                        //network error
-                        if (size < 0)
-                        {
-                            error = Error.GEN_NET_FAIL;
-                        }
-#endif
                     }
                     if (error != Error.NONE)
                         break;
@@ -383,7 +272,6 @@ namespace AudioStreaming.Client
             SongName = "Unknown";
 
         }
-#if API_REBUILD
         private void ReceiveSocketData(byte Command_send)
         {
             byte[] buffer = null;
@@ -391,14 +279,14 @@ namespace AudioStreaming.Client
             byte command = 0;
             byte recv_multi = 0;
 
-            while (size < Protocol.CommandHeaderSize)
+            while (size < Protocol.CommandHeaderSize && size >= 0)
             {
                 size = GetData(ref buffer);
             }
             if (size > Protocol.CommandHeaderSize)
                 size -= Protocol.CommandHeaderSize;
 
-            if (size == Protocol.CommandHeaderSize)
+            if (size == Protocol.CommandHeaderSize || size < 0)
                 return;
 
             byte[] data = new byte[size];
@@ -433,6 +321,8 @@ namespace AudioStreaming.Client
                 case Protocol.SEND_DATA:
                     try
                     {
+                        if (!mp3Mode)
+                            recv_multi = 0;
                         int i = 1;
                         do
                         {
@@ -488,6 +378,5 @@ namespace AudioStreaming.Client
                     break;
             }
         }
-#endif
     }
 }
