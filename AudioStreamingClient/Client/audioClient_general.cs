@@ -14,8 +14,10 @@ namespace AudioStreaming.Client
         //       VARIABLES
         //---------------------------
         private bool eventRegistered = false;
+#if !API_REBUILD
         private bool recqNext = false;
         private bool recqPrev = false;
+#endif
 
         public Settings settings = new Settings();
 

@@ -63,7 +63,9 @@ namespace AudioStreaming.Client
                     connected = 1;
                     byte[] buffer = null;
                     int size = 0;
+#if !API_REBUILD
                     byte recv_multi = 0;
+#endif
 
 
                     if (connection_init == 0)
