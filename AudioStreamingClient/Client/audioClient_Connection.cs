@@ -77,12 +77,28 @@ namespace AudioStreaming.Client
                         }
 
                         //get the response & validate it
-                        size = GetData(ref buffer);
+                        DateTime startTime = DateTime.Now;
+                        TimeSpan elapsedTime = DateTime.Now - startTime;
                         int expected_size = 0x0f;
+
+                        while (size < expected_size && elapsedTime.Seconds < 10)
+                        {
+                            size = GetData(ref buffer);
+                            elapsedTime = DateTime.Now - startTime;
+                            System.Threading.Thread.Sleep(1);
+                        }
+                        
 
                         if (size < expected_size || buffer[0] != Protocol.INIT_REQ_RESPONSE
                             || ByteConversion.ByteArrayToUInt(buffer, Protocol.CommandHeaderSize) == 0xDEADFFFF || (buffer[8] << 8) + buffer[9] != audioPlayer._VERSION)
                         {
+                            Debug.WriteLine("size : {0}{1}buffer[0] : {2}{1}Response:{3}{1}Version : {4}",
+                                size,
+                                Environment.NewLine,
+                                (buffer == null) ? "buffer == null" : Convert.ToString(buffer[0]),
+                                (buffer == null) ? "buffer == null" :
+                                    String.Format("{0}", ByteConversion.ByteArrayToUInt(buffer, Protocol.CommandHeaderSize)),
+                                (buffer == null) ? "buffer == null" : String.Format("{0}", (buffer[8] << 8) + buffer[9]));
                             error = Error.RESPONSE_FAIL;
                             break;
                         }

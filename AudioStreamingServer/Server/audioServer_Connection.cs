@@ -166,13 +166,29 @@ namespace AudioStreaming.Server
                         }
 
                         //check if response was good or not
-                        if (GetData(ref bytesFrom) != Protocol.CommandHeaderSize || bytesFrom[0] != Protocol.INIT_ACK)
+                        DateTime startTime = DateTime.Now;
+                        TimeSpan elapsedTime = DateTime.Now - startTime;
+                        bytesFrom = null;
+
+                        while (
+                            (bytesFrom == null) ? true : bytesFrom.Length < Protocol.CommandHeaderSize &&
+                            elapsedTime.Seconds < 5)
+                        {
+                            GetData(ref bytesFrom);
+                            elapsedTime = DateTime.Now - startTime;
+                            System.Threading.Thread.Sleep(1);
+                        }
+
+                        if (bytesFrom == null || bytesFrom.Length != Protocol.CommandHeaderSize || bytesFrom[0] != Protocol.INIT_ACK)
                         {
                             error = Error.RESPONSE_FAIL;
                         }
 
-                        Debug.WriteLine("Connection init successful!");
-                        connection_init = 1;
+                        if (error == Error.NONE)
+                        {
+                            Debug.WriteLine("Connection init successful!");
+                            connection_init = 1;
+                        }
                     }
                     else
                     {

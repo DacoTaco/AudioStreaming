@@ -49,6 +49,7 @@ namespace AudioStreaming.Client
             }
             set
             {
+                OnPropertyChanged("BufferLenght");
             }
         }
 
