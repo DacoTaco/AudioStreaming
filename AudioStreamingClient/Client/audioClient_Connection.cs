@@ -122,7 +122,8 @@ namespace AudioStreaming.Client
                             recquestCommandToSend = recquestSubCommandToSend = 0x00;
                         }
 
-                        //if we aren't playing anything and there is no command to send, we request a new title, which will start the process of playing new song
+                        //if we aren't playing anything and there is no command to send, we request a new title
+                        //which will start the process of playing new song
                         else if (!audioPlayer.IsPlaying() && commandToSend == 0x00)
                         {
                             commandToSend = Protocol.RECQ_TITLE;
@@ -154,8 +155,19 @@ namespace AudioStreaming.Client
                         {
                             commandToSend = Protocol.RECQ_SEND_MULTI_DATA;
                         }
+                        else if (mp3Mode && audioPlayer.bFileEnding) // EOF was signaled. finish song,send the next command and redo! :P
+                        {
+                            if(audioPlayer.WaitForMoreData() <= 0)
+                            {
+                                //stop player, and then add the next frame. this will reinit the player
+                                audioPlayer.StopPlaying();
+                                audioPlayer.bFileEnding = false;
+                                commandToSend = Protocol.RECQ_NEXT_SONG;
+                            }
+                        }
                         else if (!mp3Mode)
                             commandToSend = Protocol.RECQ_SEND_DATA;
+                        
 
 
                         if (commandToSend != 0x00)
@@ -215,7 +227,7 @@ namespace AudioStreaming.Client
                                     break;
                                 case Protocol.RECQ_SEND_MULTI_DATA:
                                 default:
-                                    if (audioPlayer.GetBufferLenght() < MAX_BUFFER_LENGHT) // if we dont have enough data, we'll request some more :')
+                                    if (audioPlayer.GetBufferLenght() < MAX_BUFFER_LENGHT && !audioPlayer.bFileEnding) // if we dont have enough data, we'll request some more :')
                                     {
                                         if (mp3Mode)
                                             commandToSend = Protocol.RECQ_SEND_MULTI_DATA;
@@ -225,16 +237,6 @@ namespace AudioStreaming.Client
                                     else
                                         commandToSend = 0x00;
                                     break;
-                            }
-                        }
-                        else if (audioPlayer.bFileEnding) // EOF was signaled. finish song,send the next command and redo! :P
-                        {
-                            if (audioPlayer.WaitForMoreData() <= 0)
-                            {
-                                //stop player, and then add the next frame. this will reinit the player
-                                audioPlayer.StopPlaying();
-                                audioPlayer.bFileEnding = false;
-                                commandToSend = Protocol.RECQ_NEXT_SONG;
                             }
                         }
                     }
