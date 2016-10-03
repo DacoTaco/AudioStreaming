@@ -19,6 +19,19 @@ namespace AudioStreaming.Client
         //the audioPlayer using our AudioBackend. this will handle the data and play it
         private AudioPlayer audioPlayer = null;
 
+        public bool Paused 
+        {
+            get
+            {
+                return audioPlayer.Paused;
+            }
+            set
+            {
+                audioPlayer.Paused = value;
+                OnPropertyChanged("Paused");
+            }
+        }
+
         public string Hostname
         {
             get
@@ -49,6 +62,7 @@ namespace AudioStreaming.Client
             }
             set
             {
+                //the illusion something changed lol
                 OnPropertyChanged("BufferLenght");
             }
         }
@@ -170,10 +184,26 @@ namespace AudioStreaming.Client
         }
         private void HandlePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (sender.ToString() == "AudioStreaming.AudioPlayer" && e.PropertyName == "BufferLenght")
-                OnPropertyChanged("BufferLenght");
-            if (sender.ToString() == "AudioStreaming.AudioPlayer" && e.PropertyName == "Volume")
-                OnPropertyChanged("Volume");
+
+            switch(sender.ToString() )
+            {
+                case "AudioStreaming.AudioPlayer":
+                    switch (e.PropertyName)
+                    {
+                        case "BufferLenght":
+                        case "Volume":
+                        case "Paused":
+                            OnPropertyChanged(e.PropertyName);
+                            break;
+                        default:
+                            Debug.WriteLine("unknown PropertyChanged Event call from {0} , Named {1}", sender.ToString(), e.PropertyName);
+                            break;
+                    }
+                    break;
+                default:
+                    Debug.WriteLine("unknown PropertyChanged Event call from {0} , Named {1}", sender.ToString(), e.PropertyName);
+                    break;
+            }      
         }
     }
 }

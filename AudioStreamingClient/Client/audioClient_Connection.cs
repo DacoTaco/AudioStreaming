@@ -140,7 +140,6 @@ namespace AudioStreaming.Client
 
                         //if we aren't playing anything and there is no command to send, we request a new title
                         //which will start the process of playing new song
-                        else if (!audioPlayer.IsPlaying() && commandToSend == 0x00)
                         {
                             commandToSend = Protocol.RECQ_TITLE;
                         }
@@ -176,7 +175,7 @@ namespace AudioStreaming.Client
                             if(audioPlayer.WaitForMoreData() <= 0)
                             {
                                 //stop player, and then add the next frame. this will reinit the player
-                                audioPlayer.StopPlaying();
+                                audioPlayer.StopPlayer();
                                 audioPlayer.bFileEnding = false;
                                 commandToSend = Protocol.RECQ_NEXT_SONG;
                             }
@@ -209,7 +208,7 @@ namespace AudioStreaming.Client
                                 case Protocol.RECQ_PREV_SONG:
                                     if (mp3Mode)
                                     {
-                                        audioPlayer.StopPlaying();
+                                        audioPlayer.StopPlayer();
                                         goto case Protocol.NOP;
                                     }
                                     else
@@ -282,7 +281,7 @@ namespace AudioStreaming.Client
         {
             CleanupNetworking();
 
-            audioPlayer.StopPlaying();
+            audioPlayer.StopPlayer();
 
             ThreadAlive = false;
             killThread = false;
@@ -328,7 +327,7 @@ namespace AudioStreaming.Client
                     Debug.WriteLine(String.Format("new title : {0}", SongName));
                     break;
                 case Protocol.REINIT_BACKEND:
-                    audioPlayer.StopPlaying();
+                    audioPlayer.StopPlayer();
                     recv_multi = data[0];
                     goto case Protocol.SEND_DATA;
                 case Protocol.SEND_MULTI_DATA:

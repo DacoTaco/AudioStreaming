@@ -44,6 +44,32 @@ namespace AudioStreaming
             }
         }
 
+        public bool Paused 
+        {
+            get
+            {
+                if (waveOut == null)
+                    return false;
+
+                return (waveOut.PlaybackState == PlaybackState.Paused);
+            }
+            set
+            {
+                if (waveOut != null)
+                {
+                    if (value == true)
+                    {
+                        waveOut.Pause();
+                    }
+                    else
+                    {
+                        waveOut.Play();
+                    }
+                }
+                OnPropertyChanged("Paused");
+            }
+        }
+
 
         public delegate void BackendHandler(object sender, bool State);
         public event BackendHandler backendHandler;
@@ -64,9 +90,14 @@ namespace AudioStreaming
                 return false;
             return (waveOut.PlaybackState == PlaybackState.Playing);
         }
+
+        public void PausePlayer(bool pause)
+        {
+            Paused = pause;
+        }
         //The StopPlaying/Recording functions which will call KillAll which kills both recording and playing streams.
         //public void StopPlaying(object sender, EventArgs e)
-        public void StopPlaying()
+        public void StopPlayer()
         {
             //signal event we are shutting down
             if (backendHandler != null)
@@ -138,7 +169,7 @@ namespace AudioStreaming
         public void SetupBackend(Mp3Frame frame)
         {
             //first cleanup the the backend. the old MP3 info could be different
-            StopPlaying();
+            StopPlayer();
             bFileEnding = false;
             //setup the output stream, using the provider & mp3Frame
             waveOut = new NAudio.Wave.DirectSoundOut();

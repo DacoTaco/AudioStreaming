@@ -44,7 +44,7 @@ namespace AudioStreaming.Client
             btnPrev.DataContext = Client.settings;
 
             //for the disabling of controls
-            grdConnectionControls.DataContext = Client;
+            stConnections.DataContext = Client;
 
             //enable debugging output
             debug = new DebugListener(txtDebug);
