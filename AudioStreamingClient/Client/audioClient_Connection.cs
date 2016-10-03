@@ -140,6 +140,7 @@ namespace AudioStreaming.Client
 
                         //if we aren't playing anything and there is no command to send, we request a new title
                         //which will start the process of playing new song
+                        else if (!audioPlayer.IsPlaying() && !audioPlayer.Paused && commandToSend == 0x00)
                         {
                             commandToSend = Protocol.RECQ_TITLE;
                         }
