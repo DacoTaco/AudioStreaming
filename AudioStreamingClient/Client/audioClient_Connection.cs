@@ -329,6 +329,7 @@ namespace AudioStreaming.Client
                     break;
                 case Protocol.REINIT_BACKEND:
                     audioPlayer.StopPlayer();
+                    audioPlayer.bFileEnding = false;
                     recv_multi = data[0];
                     goto case Protocol.SEND_DATA;
                 case Protocol.SEND_MULTI_DATA:

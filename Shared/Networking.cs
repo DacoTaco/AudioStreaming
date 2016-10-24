@@ -99,7 +99,7 @@ namespace AudioStreaming
                 try
                 {
                     if (socket.ReceiveTimeout == 0)
-                        socket.ReceiveTimeout = 400;
+                        socket.ReceiveTimeout = 3000;
                     ret = socket.Receive(bpacket, HeaderSize, 0);
                 }
                 catch (SocketException Se)
