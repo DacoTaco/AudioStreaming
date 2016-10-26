@@ -167,7 +167,7 @@ namespace AudioStreaming.Client
                             else
                                 commandToSend = 0x00;
                         }
-                        else if (mp3Mode && !audioPlayer.bFileEnding)
+                        else if (mp3Mode && !audioPlayer.bFileEnding && commandToSend == 0x00)
                         {
                             commandToSend = Protocol.RECQ_SEND_MULTI_DATA;
                         }

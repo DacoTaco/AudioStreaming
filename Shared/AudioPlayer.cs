@@ -83,6 +83,10 @@ namespace AudioStreaming
                 return false;
             return true;
         }
+        public bool IsInit()
+        {
+            return IsBackendValid();
+        }
 
         public bool IsPlaying()
         {
