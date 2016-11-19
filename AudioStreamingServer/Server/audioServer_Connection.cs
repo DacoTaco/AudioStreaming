@@ -256,7 +256,8 @@ namespace AudioStreaming.Server
                                         break;
 
                                     byte command = bytesFrom[0];
-                                    byte subCommand = 0;
+                                    byte subCommand = bytesFrom[1];
+                                    int framesToRead = subCommand;
                                     NAudio.Wave.Mp3Frame frame = null;
                                     byte[] header = new byte[5];
                                     byte[] data = new byte[1];
@@ -287,7 +288,7 @@ namespace AudioStreaming.Server
                                     {
                                         command = Protocol.SEND_MULTI_DATA;
 
-                                        for (byte i = 0; i < 25; i++)
+                                        for (byte i = 0; i < framesToRead; i++)
                                         {
                                             if (frame != null)
                                             {
@@ -319,7 +320,7 @@ namespace AudioStreaming.Server
                                                 break;
                                             }
 
-                                            if (i < 24)
+                                            if (i < framesToRead - 1)
                                                 frame = audioPlayer.GetNextMp3Frame();
                                         }
                                         //complete packet
@@ -328,6 +329,8 @@ namespace AudioStreaming.Server
                                             header[(i * 4) + 1] = ByteConversion.ByteFromInt(indexes[i] + header.Length, 2); //index of the next frame
                                             header[(i * 4) + 2] = ByteConversion.ByteFromInt(indexes[i] + header.Length, 3);
                                         }
+                                        if (subCommand != Protocol.SEND_MULTI_EOF_SUBCOM)
+                                            subCommand = 0;
 
                                     }
 

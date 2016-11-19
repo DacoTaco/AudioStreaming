@@ -194,16 +194,13 @@ namespace AudioStreaming.Client
                                     if (mp3Mode)
                                         break;
 
-                                    SendData(Protocol.RECQ_REINIT, null);
-                                    ReceiveSocketData(Protocol.RECQ_REINIT);
-                                    break;
+                                    goto case Protocol.NOP;
 
                                 case Protocol.RECQ_REINIT_MP3:
                                     if (!mp3Mode)
                                         break;
-                                    SendData(Protocol.RECQ_REINIT_MP3, null);
-                                    ReceiveSocketData(Protocol.RECQ_REINIT_MP3);
-                                    break;
+
+                                    goto case Protocol.NOP;
 
                                 case Protocol.RECQ_NEXT_SONG:
                                 case Protocol.RECQ_PREV_SONG:
@@ -214,7 +211,23 @@ namespace AudioStreaming.Client
                                     }
                                     else
                                         break;
-                                case Protocol.RECQ_SEND_MULTI_DATA: //request data to play!                            
+                                case Protocol.RECQ_SEND_MULTI_DATA: //request data to play!  
+                                    double Lenght = audioPlayer.GetBufferLenght();
+                                    byte framesToRequest = 30;
+                                    if (Lenght > 4)
+                                        framesToRequest = 20;
+                                    else if (Lenght > 3)
+                                        framesToRequest = 30;
+                                    else if (Lenght > 2)
+                                        framesToRequest = 40;
+                                    /*else if (Lenght > 1)
+                                        framesToRequest = 35;*/
+                                    else
+                                        framesToRequest = 50;
+
+                                    SendData(commandToSend, framesToRequest, null);
+                                    ReceiveSocketData(commandToSend);
+                                    break;
                                 case Protocol.RECQ_TITLE: //request the title!
                                 case Protocol.RECQ_SEND_DATA: //request data!
                                 case Protocol.KILL_CONNECTION:
