@@ -25,6 +25,7 @@ namespace AudioStreaming.Client
     public partial class MainWindow : Window
     {
 
+        public static RoutedCommand RoutePause = new RoutedCommand();
         private audioClient Client = new audioClient();
         DebugListener debug;
 
@@ -33,7 +34,17 @@ namespace AudioStreaming.Client
         //functions
         public MainWindow()
         {
+            //setup UI
             InitializeComponent();
+            CommandBinding pause = new CommandBinding(RoutePause, cmdPausePlayer);
+            this.CommandBindings.Add(pause);
+            KeyGesture keyPause = new KeyGesture(Key.Space,ModifierKeys.None);
+            btConnect.Focus();
+
+            //enable debugging output
+            debug = new DebugListener(txtDebug);
+            Debug.Listeners.Add(debug);
+
 
             //assinging datacontext to all the stuff...
             this.DataContext = Client;
@@ -46,20 +57,27 @@ namespace AudioStreaming.Client
             //for the disabling of controls
             stConnections.DataContext = Client;
 
-            //enable debugging output
-            debug = new DebugListener(txtDebug);
-            Debug.Listeners.Add(debug);  
-        }
-        private void CheckBoxChanged(object sender, RoutedEventArgs e)
-        {
-            //cbCompress.IsEnabled = (cbMp3Mode.IsChecked == true)?false:true;
 
         }
-        private void btConnect_Click(object sender, RoutedEventArgs e)
+
+        private void cmdPausePlayer(object sender, ExecutedRoutedEventArgs e)
+        {
+            if(cbMp3Mode.IsChecked == true && Client.ThreadAlive)
+                Client.Paused = true;
+        }
+        private void cmdConnect(object sender, ExecutedRoutedEventArgs e)
+        {
+            Connect();
+        }
+        private void Connect()
         {
             //isChecked is a 3 state bool. you can't pass them on to a regular bool.
             //hence we check if its true or not. basically combining 2 states into false
             Client.StartConnection();//txbHostname.Text, (cbCompress.IsChecked == true) ? true : false, (cbMp3Mode.IsChecked == true) ? true : false);
+        }
+        private void btConnect_Click(object sender, RoutedEventArgs e)
+        {
+            Connect();
         }
         private void Disconnect(object sender, RoutedEventArgs e)
         {

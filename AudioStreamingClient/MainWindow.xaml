@@ -14,7 +14,7 @@
                 <CheckBox x:Name="cbMp3Mode" Content="Mp3Connect" Margin="30,0,0,0" IsChecked="{Binding Mp3Mode, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="15,10,0,0" x:Name="stConnectionbtn">
-                <Button x:Name="btConnect" Content="Connect!" Margin="10,0,0,0" Width="75" Click="btConnect_Click" IsDefault="True" IsEnabled="{Binding Path=enableControls}"/>
+                <Button x:Name="btConnect" Content="Connect!" Margin="10,0,0,0" Width="75" Click="btConnect_Click" IsDefault="True" IsEnabled="{Binding Path=enableControls}" />
                 <Button x:Name="btKillConnection" Content="Kill Connection" IsEnabled="{Binding ThreadAlive}" Margin="43,0,0,0" Width="89" Click="Disconnect"/>
             </StackPanel>
         </StackPanel>
@@ -37,7 +37,7 @@
 
             <Expander x:Name="expDebug" Header="Debug Info" Expanded="ChangeUISize" Collapsed="ChangeUISize" Margin="0,15,0,0">
                 <StackPanel>
-                    <TextBox x:Name="txtDebug" TextWrapping="Wrap" Text="" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" Height="200"/>
+                    <TextBox x:Name="txtDebug" IsReadOnly="True" TextWrapping="Wrap" Text="" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" Height="200"/>
                 </StackPanel>
             </Expander>
 
