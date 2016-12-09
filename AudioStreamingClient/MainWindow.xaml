@@ -8,7 +8,7 @@
         <StackPanel Name="stConnections" Margin="0,0,0,0">
             <StackPanel Orientation="Horizontal" x:Name="stHostname" Margin="15,0,0,0" IsEnabled="{Binding Path=enableControls}" >
                 <Label x:Name="lbHost" Content="Hostname :" Margin="0,0,0,0" Width="Auto" Height="30"/>
-                <TextBox x:Name="txbHostname" TextWrapping="Wrap" Height="24" Width="120" Margin="30,0,0,0" Text="{Binding Path=Hostname, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox x:Name="txbHostname" TextWrapping="Wrap" Height="24" Width="115" Margin="30,0,0,0" Text="{Binding Path=Hostname, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="15,10,0,0" x:Name="stOptions" IsEnabled="{Binding Path=enableControls}">
                 <CheckBox x:Name="cbCompress" Content="Compress Data" Margin="0,0,0,0" IsChecked="{Binding CompressData, UpdateSourceTrigger=PropertyChanged}"/>
