@@ -55,6 +55,7 @@ namespace AudioStreaming.Server
             ThreadAlive = false;
             killThread = false;
             oThread.Start();
+            Mp3Path = PathToMP3;
             return;
             //Server();
 
