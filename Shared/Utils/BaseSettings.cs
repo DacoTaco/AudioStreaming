@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace AudioStreaming.Utils
@@ -94,8 +90,17 @@ namespace AudioStreaming.Utils
                     lock (padlock)
                     {
                         loadingSettings = true;
-                        var loadedSettings = serializer.Deserialize(reader);
-                        Settings = Cast(loadedSettings, T);
+                        try
+                        {
+                            var loadedSettings = serializer.Deserialize(reader);
+                            Settings = Cast(loadedSettings, T);
+                        }
+                        catch (Exception e)
+                        {
+                            //error loading settings. we'll have to remake the file with the default settings :)
+                            System.IO.File.Delete(filename);
+                            SaveSettings();
+                        }
                     }
 
                     fs.Close();
@@ -108,7 +113,7 @@ namespace AudioStreaming.Utils
             loadingSettings = false;
             return;
         }
-        public static dynamic Cast(dynamic obj, Type castTo)
+        private static dynamic Cast(dynamic obj, Type castTo)
         {
             return Convert.ChangeType(obj, castTo);
         }
