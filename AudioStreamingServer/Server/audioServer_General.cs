@@ -13,11 +13,12 @@ namespace AudioStreaming.Server
         //variables
         //----------------------
         private int deviceIndex = 0;
-        public Settings settings = new Settings();
 
-        public string mp3Path
+        private string mp3Path = "C:\\";
+        private string Mp3Path
         {
-            get { return settings.Directory; }
+            get { return mp3Path; }
+            set { mp3Path = value; }
         }
 
         private string songName;
@@ -48,7 +49,6 @@ namespace AudioStreaming.Server
         public audioServer()
         {
             audioPlayer = new AudioRecorder();
-            settings.LoadSettings();
             return;
         }
 

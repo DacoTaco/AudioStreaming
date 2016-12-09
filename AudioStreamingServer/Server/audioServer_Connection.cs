@@ -44,9 +44,9 @@ namespace AudioStreaming.Server
             if (playedListIndexes.Count > 0)
                 playedListIndexes.Clear();
         }
-        public void StartServer(int indexDevice)
+        public void StartServer(int indexDevice,String PathToMP3)
         {
-            if (ThreadAlive)
+            if (ThreadAlive || PathToMP3 == null)
                 return;
 
             deviceIndex = indexDevice;

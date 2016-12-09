@@ -33,6 +33,7 @@ namespace AudioStreaming.Server
         public IList<Device> Devices { get; set; }
         audioServer Server;
         DebugListener debug;
+        ServerSettings settings = ServerSettings.Settings;
 
 
         //----------------------
@@ -46,7 +47,7 @@ namespace AudioStreaming.Server
 
             grdMain.DataContext = Server;
             listDevices.DataContext = this;
-            txtMp3Path.DataContext = Server.settings;
+            txtMp3Path.DataContext = settings;
             GetDevices();
 
             if (GetDevicesCount() > 0 && listDevices.SelectedIndex < 0)
@@ -64,7 +65,7 @@ namespace AudioStreaming.Server
         {
             if (GetDevicesCount() > 0)
             {
-                Server.StartServer(listDevices.SelectedIndex);
+                Server.StartServer(listDevices.SelectedIndex, settings.Directory);
 
             }
         }

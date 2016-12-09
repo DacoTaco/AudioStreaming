@@ -14,7 +14,7 @@ namespace AudioStreaming.Client
         //       VARIABLES
         //---------------------------
         private bool eventRegistered = false;
-        public Settings settings = new Settings();
+
 
         //the audioPlayer using our AudioBackend. this will handle the data and play it
         private AudioPlayer audioPlayer = null;
@@ -31,17 +31,7 @@ namespace AudioStreaming.Client
                 OnPropertyChanged("Paused");
             }
         }
-
-        public string Hostname
-        {
-            get
-            {
-                return settings.Hostname;
-            }
-            set
-            {
-            }
-        }
+        public string Hostname { get; set; }
         public float Volume
         {
             get
@@ -95,7 +85,6 @@ namespace AudioStreaming.Client
         {
             audioPlayer = new AudioPlayer();
             audioPlayer.backendHandler += AudioPlayer_backendHandler;
-            settings.LoadSettings();
             return;
         }
 
@@ -107,14 +96,21 @@ namespace AudioStreaming.Client
                 UnregisterPropertyChanged();
         }
 
-        public void StartConnection()
+        public void StartConnection(string hostname,bool compressPackets,bool Mp3Mode)
         {
             //we dont want to have the client run twice
             if (ThreadAlive)
                 return;
 
-            compressed = settings.CompressData;
-            mp3Mode = settings.Mp3Mode;
+            if (hostname == null || hostname == "")
+            {
+                MessageBox.Show("Please Enter a valid hostname", "Error Connecting to server", MessageBoxButton.OK);
+                return;
+            }
+
+            Hostname = hostname;
+            compressed = compressPackets;
+            mp3Mode = Mp3Mode;
 
             Thread oThread = new Thread(new ThreadStart(this.ConnectToServer));
             ThreadAlive = false;
@@ -133,15 +129,6 @@ namespace AudioStreaming.Client
                 //interrupt player so it stops everything its doing
                 Monitor.Pulse(audioPlayer.thread_monitor);
             }
-        }
-
-        public void SaveSettings()
-        {
-            settings.SaveSettings();
-        }
-        public void LoadSettings()
-        {
-            settings.LoadSettings();
         }
 
         public void RequestNext()

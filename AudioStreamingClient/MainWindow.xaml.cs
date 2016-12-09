@@ -28,6 +28,7 @@ namespace AudioStreaming.Client
         public static RoutedCommand RoutePause = new RoutedCommand();
         private audioClient Client = new audioClient();
         DebugListener debug;
+        ClientSettings settings = ClientSettings.Settings;
 
         
 
@@ -48,16 +49,12 @@ namespace AudioStreaming.Client
 
             //assinging datacontext to all the stuff...
             this.DataContext = Client;
-            txbHostname.DataContext = Client.settings;
-            cbMp3Mode.DataContext = Client.settings;
-            cbCompress.DataContext = Client.settings;
-            btnNext.DataContext = Client.settings;
-            btnPrev.DataContext = Client.settings;
+
+            //connection settings binding
+            stConnections.DataContext = settings; //Client.settings;
 
             //for the disabling of controls
-            stConnections.DataContext = Client;
-
-
+            stConnectionbtn.DataContext = Client;
         }
 
         private void cmdPausePlayer(object sender, ExecutedRoutedEventArgs e)
@@ -73,7 +70,7 @@ namespace AudioStreaming.Client
         {
             //isChecked is a 3 state bool. you can't pass them on to a regular bool.
             //hence we check if its true or not. basically combining 2 states into false
-            Client.StartConnection();//txbHostname.Text, (cbCompress.IsChecked == true) ? true : false, (cbMp3Mode.IsChecked == true) ? true : false);
+            Client.StartConnection(settings.Hostname, settings.CompressData, settings.Mp3Mode);
         }
         private void btConnect_Click(object sender, RoutedEventArgs e)
         {

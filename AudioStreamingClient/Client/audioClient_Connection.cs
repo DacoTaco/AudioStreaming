@@ -40,11 +40,6 @@ namespace AudioStreaming.Client
             ThreadAlive = true;
             killThread = false;
 
-            //currently we force the compressed mode disabled when in mp3 mode.
-            //maybe we'll allow compression of mp3 packets but i doubt we would win anything from it
-            /*if (mp3Mode == true)
-                compressed = false;*/
-
             //set the socket as a IPv4,stream, TCP/IP socket
             clientSocket = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
