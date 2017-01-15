@@ -138,10 +138,6 @@ namespace AudioStreaming.Utils
             writer.Serialize(file, settings);
             file.Close();
         }
-        public virtual string DenTypeWur()
-        {
-            return Settings.GetType().ToString();
-        }
     }
 
 
